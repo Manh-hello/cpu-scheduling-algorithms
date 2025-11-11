@@ -1,0 +1,28 @@
+# Compiled files
+*.o
+*.out
+*.exe
+scheduler
+
+# Object directory
+obj/
+
+# Editor backup files
+*~
+*.swp
+*.swo
+.*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Core dumps
+core
+core.*

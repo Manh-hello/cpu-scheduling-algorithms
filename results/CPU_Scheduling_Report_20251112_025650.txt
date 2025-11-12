@@ -1,0 +1,306 @@
+════════════════════════════════════════════════════════════════════════════════
+
+           >>> CPU SCHEDULING ALGORITHMS SIMULATOR <<<
+                  NetBSD - System Programming
+
+════════════════════════════════════════════════════════════════════════════════
+
++------------------------ SYSTEM CONFIGURATION -------------------------+
+| Start Time       : 2025-11-12 02:56:50                              |
+| Input File       : data/processes.txt                                 |
+| Time Quantum     : 4                                                  |
+| Total Algorithms : 6                                                  |
++-----------------------------------------------------------------------+
+
+
++----------------------- INPUT PROCESS DATA ------------------------+
+| PID | Arrival Time | Burst Time | Priority | State           |
++-----+--------------+------------+----------+-----------------+
+| P1  |      0       |     6      |    3     | READY           |
+| P2  |      2       |     2      |    1     | READY           |
+| P3  |      4       |     8      |    4     | READY           |
+| P4  |      6       |     3      |    2     | READY           |
+| P5  |      8       |     4      |    5     | READY           |
++-----+--------------+------------+----------+-----------------+
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+                         ALGORITHM: FCFS (First Come First Served)
+
+════════════════════════════════════════════════════════════════════════════════
+
+========================== ACTIVITY LOG ====================================
+
+[Time:  0] [ARR] P1  | ARRIVED | AT=0, BT=6, Priority=3 | Entering ready queue
+[Time:  0] [RUN] P1  | START   | Response Time=0 | Beginning execution
+[Time:  2] [RUN] P1  | RUNNING  | Progress: 2/6 | Still executing
+[Time:  4] [RUN] P1  | RUNNING  | Progress: 4/6 | Still executing
+[Time:  6] [FIN] P1  | COMPLETE | CT=6, TAT=6 | Finished execution
+[Time:  6] [Queue] Ready Queue: [P2 P3 P4 ]
+[Time:  6] [ARR] P2  | ARRIVED | AT=2, BT=2, Priority=1 | Entering ready queue
+[Time:  6] [RUN] P2  | START   | Response Time=4 | Beginning execution
+[Time:  8] [FIN] P2  | COMPLETE | CT=8, TAT=6 | Finished execution
+[Time:  8] [Queue] Ready Queue: [P3 P4 P5 ]
+[Time:  8] [ARR] P3  | ARRIVED | AT=4, BT=8, Priority=4 | Entering ready queue
+[Time:  8] [RUN] P3  | START   | Response Time=4 | Beginning execution
+[Time: 10] [RUN] P3  | RUNNING  | Progress: 2/8 | Still executing
+[Time: 12] [RUN] P3  | RUNNING  | Progress: 4/8 | Still executing
+[Time: 14] [RUN] P3  | RUNNING  | Progress: 6/8 | Still executing
+[Time: 16] [FIN] P3  | COMPLETE | CT=16, TAT=12 | Finished execution
+[Time: 16] [Queue] Ready Queue: [P4 P5 ]
+[Time: 16] [ARR] P4  | ARRIVED | AT=6, BT=3, Priority=2 | Entering ready queue
+[Time: 16] [RUN] P4  | START   | Response Time=10 | Beginning execution
+[Time: 19] [FIN] P4  | COMPLETE | CT=19, TAT=13 | Finished execution
+[Time: 19] [Queue] Ready Queue: [P5 ]
+[Time: 19] [ARR] P5  | ARRIVED | AT=8, BT=4, Priority=5 | Entering ready queue
+[Time: 19] [RUN] P5  | START   | Response Time=11 | Beginning execution
+[Time: 21] [RUN] P5  | RUNNING  | Progress: 2/4 | Still executing
+[Time: 23] [FIN] P5  | COMPLETE | CT=23, TAT=15 | Finished execution
+
+============================= GANTT CHART ==================================
+
+Timeline: | P1 | P2 | P3 | P4 | P5 |
+Time:        0     6     8    16    19    23
+
++-----------------------------------------------------------------------+
+| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+| P1  | 0   | 6   | 6   | 6   | 0   | 0   | COMPLETED         |
+| P2  | 2   | 2   | 8   | 6   | 4   | 4   | COMPLETED         |
+| P3  | 4   | 8   | 16  | 12  | 4   | 4   | COMPLETED         |
+| P4  | 6   | 3   | 19  | 13  | 10  | 10  | COMPLETED         |
+| P5  | 8   | 4   | 23  | 15  | 11  | 11  | COMPLETED         |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+
+╭─────────────────────────────────────────────────────╮
+│              📊 PERFORMANCE METRICS                 │
+├─────────────────────────────────────────────────────┤
+│  Total Execution Time    : 23     time units       │
+│  CPU Utilization         : 100.00 %               │
+│  Avg Turnaround Time     : 10.40  time units      │
+│  Avg Waiting Time        : 5.80   time units      │
+│  Avg Response Time       : 5.80   time units      │
+╰─────────────────────────────────────────────────────╯
+
+════════════════════════════════════════════════════════════════════════════════
+
+                         🔹 SJF (Shortest Job First - Non-preemptive)
+
+════════════════════════════════════════════════════════════════════════════════
+
+
+Gantt Chart:
+| P1 | P2 | P4 | P5 | P3 |
+
++-----------------------------------------------------------------------+
+| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+| P1  | 0   | 6   | 6   | 6   | 0   | 0   | COMPLETED         |
+| P2  | 2   | 2   | 8   | 6   | 4   | 4   | COMPLETED         |
+| P3  | 4   | 8   | 23  | 19  | 11  | 11  | COMPLETED         |
+| P4  | 6   | 3   | 11  | 5   | 2   | 2   | COMPLETED         |
+| P5  | 8   | 4   | 15  | 7   | 3   | 3   | COMPLETED         |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+
+╭─────────────────────────────────────────────────────╮
+│              📊 PERFORMANCE METRICS                 │
+├─────────────────────────────────────────────────────┤
+│  Total Execution Time    : 23     time units       │
+│  CPU Utilization         : 100.00 %               │
+│  Avg Turnaround Time     : 8.60   time units      │
+│  Avg Waiting Time        : 4.00   time units      │
+│  Avg Response Time       : 4.00   time units      │
+╰─────────────────────────────────────────────────────╯
+
+════════════════════════════════════════════════════════════════════════════════
+
+                         🔹 SRTF (Shortest Remaining Time First)
+
+════════════════════════════════════════════════════════════════════════════════
+
+
+Gantt Chart:
+P1 | P2 | P1 | P4 | P5 | P3 |
+
++-----------------------------------------------------------------------+
+| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+| P1  | 0   | 6   | 8   | 8   | 2   | 0   | COMPLETED         |
+| P2  | 2   | 2   | 4   | 2   | 0   | 0   | COMPLETED         |
+| P3  | 4   | 8   | 23  | 19  | 11  | 11  | COMPLETED         |
+| P4  | 6   | 3   | 11  | 5   | 2   | 2   | COMPLETED         |
+| P5  | 8   | 4   | 15  | 7   | 3   | 3   | COMPLETED         |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+
+╭─────────────────────────────────────────────────────╮
+│              📊 PERFORMANCE METRICS                 │
+├─────────────────────────────────────────────────────┤
+│  Total Execution Time    : 23     time units       │
+│  CPU Utilization         : 100.00 %               │
+│  Avg Turnaround Time     : 8.20   time units      │
+│  Avg Waiting Time        : 3.60   time units      │
+│  Avg Response Time       : 3.20   time units      │
+╰─────────────────────────────────────────────────────╯
+
+════════════════════════════════════════════════════════════════════════════════
+
+                         ALGORITHM: Round Robin (Time Quantum = 4)
+
+════════════════════════════════════════════════════════════════════════════════
+
+========================== ACTIVITY LOG ====================================
+
+[Time:  0] [ARR] P1  | ARRIVED | AT=0, BT=6, Priority=3 | Added to ready queue
+[Time:  0] [RUN] P1  | START   | Response Time=0, Remaining=6 | First time running
+[Time:  2] [ARR] P2  | ARRIVED | AT=2, BT=2, Priority=1 | Added to ready queue
+[Time:  3] [RUN] P1  | RUNNING  | Progress: 3/4 of quantum | Still executing
+[Time:  4] [ARR] P3  | ARRIVED | AT=4, BT=8, Priority=4 | Added to ready queue
+[Time:  4] [Queue] Ready Queue: [P2 P3 ]
+[Time:  4] [PRE] P1  | PREEMPT | Remaining Time=2 | Time quantum expired, back to queue
+[Time:  4] [CTX] P2  | CONTEXT SWITCH #1 | From P1 to P2
+[Time:  4] [RUN] P2  | START   | Response Time=2, Remaining=2 | First time running
+[Time:  6] [ARR] P4  | ARRIVED | AT=6, BT=3, Priority=2 | Added to ready queue
+[Time:  6] [Queue] Ready Queue: [P3 P1 P4 ]
+[Time:  6] [FIN] P2  | COMPLETE | CT=6, TAT=4, WT=2 | Finished execution
+[Time:  6] [CTX] P3  | CONTEXT SWITCH #2 | From P2 to P3
+[Time:  6] [RUN] P3  | START   | Response Time=2, Remaining=8 | First time running
+[Time:  8] [ARR] P5  | ARRIVED | AT=8, BT=4, Priority=5 | Added to ready queue
+[Time:  9] [RUN] P3  | RUNNING  | Progress: 3/4 of quantum | Still executing
+[Time: 10] [Queue] Ready Queue: [P1 P4 P5 ]
+[Time: 10] [PRE] P3  | PREEMPT | Remaining Time=4 | Time quantum expired, back to queue
+[Time: 10] [CTX] P1  | CONTEXT SWITCH #3 | From P3 to P1
+[Time: 10] [RUN] P1  | RESUME  | Remaining Time=2 | Continuing execution
+[Time: 12] [Queue] Ready Queue: [P4 P5 P3 ]
+[Time: 12] [FIN] P1  | COMPLETE | CT=12, TAT=12, WT=6 | Finished execution
+[Time: 12] [CTX] P4  | CONTEXT SWITCH #4 | From P1 to P4
+[Time: 12] [RUN] P4  | START   | Response Time=6, Remaining=3 | First time running
+[Time: 14] [RUN] P4  | RUNNING  | Progress: 2/3 of quantum | Still executing
+[Time: 15] [Queue] Ready Queue: [P5 P3 ]
+[Time: 15] [FIN] P4  | COMPLETE | CT=15, TAT=9, WT=6 | Finished execution
+[Time: 15] [CTX] P5  | CONTEXT SWITCH #5 | From P4 to P5
+[Time: 15] [RUN] P5  | START   | Response Time=7, Remaining=4 | First time running
+[Time: 18] [RUN] P5  | RUNNING  | Progress: 3/4 of quantum | Still executing
+[Time: 19] [Queue] Ready Queue: [P3 ]
+[Time: 19] [FIN] P5  | COMPLETE | CT=19, TAT=11, WT=7 | Finished execution
+[Time: 19] [CTX] P3  | CONTEXT SWITCH #6 | From P5 to P3
+[Time: 19] [RUN] P3  | RESUME  | Remaining Time=4 | Continuing execution
+[Time: 22] [RUN] P3  | RUNNING  | Progress: 3/4 of quantum | Still executing
+[Time: 23] [Queue] Ready Queue: [EMPTY]
+[Time: 23] [FIN] P3  | COMPLETE | CT=23, TAT=19, WT=11 | Finished execution
+
+[✓] Total Context Switches: 6
+[✓] All processes completed
+
+============================= GANTT CHART ==================================
+
+Timeline: | P1 | P2 | P3 | P1 | P4 | P5 | P3 |
+
+
++-----------------------------------------------------------------------+
+| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+| P1  | 0   | 6   | 12  | 12  | 6   | 0   | COMPLETED         |
+| P2  | 2   | 2   | 6   | 4   | 2   | 2   | COMPLETED         |
+| P3  | 4   | 8   | 23  | 19  | 11  | 2   | COMPLETED         |
+| P4  | 6   | 3   | 15  | 9   | 6   | 6   | COMPLETED         |
+| P5  | 8   | 4   | 19  | 11  | 7   | 7   | COMPLETED         |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+
+╭─────────────────────────────────────────────────────╮
+│              📊 PERFORMANCE METRICS                 │
+├─────────────────────────────────────────────────────┤
+│  Total Execution Time    : 23     time units       │
+│  CPU Utilization         : 100.00 %               │
+│  Avg Turnaround Time     : 11.00  time units      │
+│  Avg Waiting Time        : 6.40   time units      │
+│  Avg Response Time       : 3.40   time units      │
+╰─────────────────────────────────────────────────────╯
+
+════════════════════════════════════════════════════════════════════════════════
+
+                         🔹 Priority Scheduling (Non-preemptive)
+
+════════════════════════════════════════════════════════════════════════════════
+
+
+Gantt Chart:
+| P1 | P2 | P4 | P3 | P5 |
+
++-----------------------------------------------------------------------+
+| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+| P1  | 0   | 6   | 6   | 6   | 0   | 0   | COMPLETED         |
+| P2  | 2   | 2   | 8   | 6   | 4   | 4   | COMPLETED         |
+| P3  | 4   | 8   | 19  | 15  | 7   | 7   | COMPLETED         |
+| P4  | 6   | 3   | 11  | 5   | 2   | 2   | COMPLETED         |
+| P5  | 8   | 4   | 23  | 15  | 11  | 11  | COMPLETED         |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+
+╭─────────────────────────────────────────────────────╮
+│              📊 PERFORMANCE METRICS                 │
+├─────────────────────────────────────────────────────┤
+│  Total Execution Time    : 23     time units       │
+│  CPU Utilization         : 100.00 %               │
+│  Avg Turnaround Time     : 9.40   time units      │
+│  Avg Waiting Time        : 4.80   time units      │
+│  Avg Response Time       : 4.80   time units      │
+╰─────────────────────────────────────────────────────╯
+
+════════════════════════════════════════════════════════════════════════════════
+
+                         🔹 Priority Scheduling (Preemptive)
+
+════════════════════════════════════════════════════════════════════════════════
+
+
+Gantt Chart:
+P1 | P2 | P1 | P4 | P1 | P3 | P5 |
+
++-----------------------------------------------------------------------+
+| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+| P1  | 0   | 6   | 11  | 11  | 5   | 0   | COMPLETED         |
+| P2  | 2   | 2   | 4   | 2   | 0   | 0   | COMPLETED         |
+| P3  | 4   | 8   | 19  | 15  | 7   | 7   | COMPLETED         |
+| P4  | 6   | 3   | 9   | 3   | 0   | 0   | COMPLETED         |
+| P5  | 8   | 4   | 23  | 15  | 11  | 11  | COMPLETED         |
++-----+-----+-----+-----+-----+-----+-----+-------------------+
+
+╭─────────────────────────────────────────────────────╮
+│              📊 PERFORMANCE METRICS                 │
+├─────────────────────────────────────────────────────┤
+│  Total Execution Time    : 23     time units       │
+│  CPU Utilization         : 100.00 %               │
+│  Avg Turnaround Time     : 9.20   time units      │
+│  Avg Waiting Time        : 4.60   time units      │
+│  Avg Response Time       : 3.60   time units      │
+╰─────────────────────────────────────────────────────╯
+
+
++----------------------------- FINAL STATISTICS -----------------------------+
+|
+| Algorithm                      |  Avg TAT |   Avg WT |   Avg RT |   CPU %% |
+|-------------------------------|----------|----------|----------|----------|
+| FCFS                           |    10.40 |     5.80 |     5.80 |  100.00% |
+| SJF                            |     8.60 |     4.00 |     4.00 |  100.00% |
+| SRTF                           |     8.20 |     3.60 |     3.20 |  100.00% |
+| Round Robin                    |    11.00 |     6.40 |     3.40 |  100.00% |
+| Priority (Non-preemptive)      |     9.40 |     4.80 |     4.80 |  100.00% |
+| Priority (Preemptive)          |     9.20 |     4.60 |     3.60 |  100.00% |
+|
++----------------------------------------------------------------------------+
+
++--------------------------- BEST PERFORMERS --------------------------------+
+| [★] Best Avg Turnaround Time : SRTF                           (8.20) |
+| [★] Best Avg Waiting Time    : SRTF                           (3.60) |
+| [★] Best Avg Response Time   : SRTF                           (3.20) |
++----------------------------------------------------------------------------+
+
+
+════════════════════════════════ SIMULATION END ═══════════════════════════════
+
+[✓] All algorithms completed successfully
+[✓] Report saved to: results/CPU_Scheduling_Report_20251112_025650.txt
+
+════════════════════════════════════════════════════════════════════════════════

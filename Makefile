@@ -1,97 +1,50 @@
-# Makefile for CPU Scheduling Algorithms
-# NetBSD System Programming
-
+# Makefile for CPU Scheduling - BSD Make
 CC = gcc
 CFLAGS = -Wall -Wextra -I./include
 TARGET = scheduler
-SRCDIR = src
-OBJDIR = obj
-INCDIR = include
-DATADIR = data
-RESULTSDIR = results
 
-# Source files
-SRCS = $(SRCDIR)/main.c $(SRCDIR)/fcfs.c $(SRCDIR)/sjf.c $(SRCDIR)/srtf.c \
-       $(SRCDIR)/rr.c $(SRCDIR)/priority.c $(SRCDIR)/utils.c $(SRCDIR)/export.c
+all: obj_dir $(TARGET)
+@echo "Build successful: $(TARGET)"
 
-OBJS = $(OBJDIR)/main.o $(OBJDIR)/fcfs.o $(OBJDIR)/sjf.o $(OBJDIR)/srtf.o \
-       $(OBJDIR)/rr.o $(OBJDIR)/priority.o $(OBJDIR)/utils.o $(OBJDIR)/export.o
+obj_dir:
+@mkdir -p obj
+@mkdir -p results
 
-# Colors
-RED = \033[0;31m
-GREEN = \033[0;32m
-YELLOW = \033[1;33m
-BLUE = \033[0;34m
-NC = \033[0m
+$(TARGET): obj/main.o obj/fcfs.o obj/sjf.o obj/srtf.o obj/rr.o obj/priority.o obj/utils.o obj/export.o
+@echo "Linking..."
+$(CC) $(CFLAGS) -o $(TARGET) obj/main.o obj/fcfs.o obj/sjf.o obj/srtf.o obj/rr.o obj/priority.o obj/utils.o obj/export.o
 
-# Main target
-all: directories $(TARGET)
-	@echo "$(GREEN)✓ Build successful: $(TARGET)$(NC)"
+obj/main.o: src/main.c
+$(CC) $(CFLAGS) -c src/main.c -o obj/main.o
 
-# Create necessary directories
-directories:
-	@mkdir -p $(OBJDIR)
-	@mkdir -p $(RESULTSDIR)
+obj/fcfs.o: src/fcfs.c
+$(CC) $(CFLAGS) -c src/fcfs.c -o obj/fcfs.o
 
-# Link object files to create executable
-$(TARGET): $(OBJS)
-	@echo "$(YELLOW)Linking...$(NC)"
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+obj/sjf.o: src/sjf.c
+$(CC) $(CFLAGS) -c src/sjf.c -o obj/sjf.o
 
-# Compile source files to object files
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
-	@echo "$(BLUE)Compiling $<...$(NC)"
-	$(CC) $(CFLAGS) -c $< -o $@
+obj/srtf.o: src/srtf.c
+$(CC) $(CFLAGS) -c src/srtf.c -o obj/srtf.o
 
-# Clean build files
+obj/rr.o: src/rr.c
+$(CC) $(CFLAGS) -c src/rr.c -o obj/rr.o
+
+obj/priority.o: src/priority.c
+$(CC) $(CFLAGS) -c src/priority.c -o obj/priority.o
+
+obj/utils.o: src/utils.c
+$(CC) $(CFLAGS) -c src/utils.c -o obj/utils.o
+
+obj/export.o: src/export.c
+$(CC) $(CFLAGS) -c src/export.c -o obj/export.o
+
 clean:
-	@echo "$(RED)Cleaning...$(NC)"
-	@rm -rf $(OBJDIR) $(TARGET)
-	@echo "$(GREEN)✓ Cleaned!$(NC)"
+rm -rf obj/*.o $(TARGET)
 
-# Clean all including results
 cleanall: clean
-	@rm -rf $(RESULTSDIR)/*.txt
-	@echo "$(GREEN)✓ Cleaned all files$(NC)"
+rm -rf results/*.txt
 
-# Run with sample data
 run: $(TARGET)
-	./$(TARGET)
+./$(TARGET)
 
-# Run with default processes.txt
-runfile: $(TARGET)
-	@echo "3" | ./$(TARGET)
-
-# Run tests
-test: $(TARGET)
-	@echo "$(BLUE)Running tests...$(NC)"
-	@for file in $(DATADIR)/test_*.txt; do \
-		if [ -f "$$file" ]; then \
-			echo ""; \
-			echo "$(YELLOW)=== Testing with $$(basename $$file) ===$(NC)"; \
-			base=$$(basename $$file .txt); \
-			printf "3\n$$file\n8\nresults/$${base}_result.txt\n7\n0\nn" | ./$(TARGET) > /dev/null 2>&1; \
-			if [ -f "results/$${base}_result.txt" ]; then \
-				echo "$(GREEN)✓ Test passed: results/$${base}_result.txt$(NC)"; \
-			else \
-				echo "$(RED)✗ Test failed$(NC)"; \
-			fi; \
-		fi; \
-	done
-	@echo ""
-	@echo "$(GREEN)✓ All tests completed$(NC)"
-
-# Help
-help:
-	@echo "CPU Scheduling Algorithms - Makefile"
-	@echo ""
-	@echo "Usage:"
-	@echo "  make          - Build the project"
-	@echo "  make run      - Build and run interactively"
-	@echo "  make runfile  - Run with data/processes.txt"
-	@echo "  make test     - Run all test files"
-	@echo "  make clean    - Remove build files"
-	@echo "  make cleanall - Remove build and result files"
-	@echo "  make help     - Show this help"
-
-.PHONY: all clean cleanall run runfile test help directories
+.PHONY: all clean cleanall run obj_dir

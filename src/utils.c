@@ -1,36 +1,47 @@
 #include "../include/scheduler.h"
 
-// Hàm đọc dữ liệu từ file
+// Đọc dữ liệu từ file
 int read_from_file(Process proc[], int *n, const char *filename) {
     FILE *file = fopen(filename, "r");
     
     if (file == NULL) {
-        printf("\n❌ Không thể mở file '%s'!\n", filename);
+        printf("\n❌ Cannot open file '%s'!\n", filename);
         return 0;
     }
     
-    printf("\n📁 Đang đọc file '%s'...\n", filename);
-    
     if (fscanf(file, "%d", n) != 1) {
-        printf("❌ Lỗi định dạng: Không đọc được số lượng processes!\n");
+        printf("❌ Format error: Cannot read number of processes!\n");
         fclose(file);
         return 0;
     }
     
     if (*n < 1 || *n > MAX_PROCESSES) {
-        printf("❌ Số lượng processes không hợp lệ: %d (phải từ 1-%d)\n", 
+        printf("❌ Invalid number of processes: %d (must be 1-%d)\n", 
                *n, MAX_PROCESSES);
         fclose(file);
         return 0;
     }
     
-    printf("   Số processes: %d\n", *n);
+    printf("   ├─ Number of processes: %d\n", *n);
+    printf("   ├─ Reading process data...\n");
     
     for (int i = 0; i < *n; i++) {
         int pid, at, bt, pr;
         
         if (fscanf(file, "%d %d %d %d", &pid, &at, &bt, &pr) != 4) {
-            printf("❌ Lỗi định dạng tại dòng %d!\n", i + 2);
+            printf("❌ Format error at line %d!\n", i + 2);
+            fclose(file);
+            return 0;
+        }
+        
+        // Validate data
+        if (bt <= 0) {
+            printf("❌ Invalid burst time at P%d: %d (must be > 0)\n", pid, bt);
+            fclose(file);
+            return 0;
+        }
+        if (at < 0) {
+            printf("❌ Invalid arrival time at P%d: %d (must be >= 0)\n", pid, at);
             fclose(file);
             return 0;
         }
@@ -42,98 +53,43 @@ int read_from_file(Process proc[], int *n, const char *filename) {
         proc[i].remaining_time = bt;
         proc[i].first_run = 0;
         
-        printf("   P%d: AT=%d, BT=%d, Priority=%d\n", pid, at, bt, pr);
+        printf("   │  └─ P%d: AT=%d, BT=%d, Priority=%d\n", pid, at, bt, pr);
     }
     
     fclose(file);
-    printf("✓ Đọc file thành công!\n");
     return 1;
 }
 
-// Hàm nhập dữ liệu thủ công
-void input_processes(Process proc[], int *n) {
-    printf("\n=== NHẬP THÔNG TIN PROCESSES ===\n");
-    printf("Nhập số lượng processes (1-%d): ", MAX_PROCESSES);
-    scanf("%d", n);
-    
-    if (*n < 1 || *n > MAX_PROCESSES) {
-        printf("Số lượng không hợp lệ! Đặt mặc định = 5\n");
-        *n = 5;
-    }
-    
-    for (int i = 0; i < *n; i++) {
-        proc[i].pid = i + 1;
-        printf("\nProcess P%d:\n", proc[i].pid);
-        
-        // Validate Arrival Time
-        do {
-            printf("  Arrival Time: ");
-            if (scanf("%d", &proc[i].arrival_time) != 1) {
-                printf("❌ Vui lòng nhập số!\n");
-                while (getchar() != '\n');  // Clear buffer
-                proc[i].arrival_time = -1;
-            } else if (proc[i].arrival_time < 0) {
-                printf("❌ Arrival time phải >= 0!\n");
-            }
-        } while (proc[i].arrival_time < 0);
-        
-        // Validate Burst Time
-        do {
-            printf("  Burst Time: ");
-            if (scanf("%d", &proc[i].burst_time) != 1) {
-                printf("❌ Vui lòng nhập số!\n");
-                while (getchar() != '\n');
-                proc[i].burst_time = 0;
-            } else if (proc[i].burst_time <= 0) {
-                printf("❌ Burst time phải > 0!\n");
-            }
-        } while (proc[i].burst_time <= 0);
-        
-        // Validate Priority
-        do {
-            printf("  Priority (1=cao): ");
-            if (scanf("%d", &proc[i].priority) != 1) {
-                printf("❌ Vui lòng nhập số!\n");
-                while (getchar() != '\n');
-                proc[i].priority = 0;
-            } else if (proc[i].priority <= 0) {
-                printf("❌ Priority phải > 0!\n");
-            }
-        } while (proc[i].priority <= 0);
-        
-        proc[i].remaining_time = proc[i].burst_time;
-        proc[i].first_run = 0;
-    }
-}
-
-// Hàm sử dụng dữ liệu mẫu
-void use_sample_data(Process proc[], int *n) {
-    *n = 5;
-    
-    int at[] = {0, 2, 4, 6, 8};
-    int bt[] = {6, 2, 8, 3, 4};
-    int pr[] = {3, 1, 4, 2, 5};
-    
-    for (int i = 0; i < *n; i++) {
-        proc[i].pid = i + 1;
-        proc[i].arrival_time = at[i];
-        proc[i].burst_time = bt[i];
-        proc[i].priority = pr[i];
-        proc[i].remaining_time = bt[i];
-        proc[i].first_run = 0;
-    }
-    
-    printf("\n✓ Đã load dữ liệu mẫu từ tài liệu!\n");
-}
-
-// In bảng process
-void print_table(Process proc[], int n) {
-    export_printf("\n╔════════╦════╦════╦════╦═════╦═════╦═════╗\n");
-    export_printf("║ Proc   ║ AT ║ BT ║ CT ║ TAT ║ WT  ║ RT  ║\n");
-    export_printf("╠════════╬════╬════╬════╬═════╬═════╬═════╣\n");
+// In bảng input data
+void print_input_table(Process proc[], int n) {
+    export_printf("\n");
+    export_printf("╔═══════════════════════════════════════════════════════════════╗\n");
+    export_printf("║                     INPUT PROCESS DATA                        ║\n");
+    export_printf("╚═══════════════════════════════════════════════════════════════╝\n");
+    export_printf("\n");
+    export_printf("┌─────────┬─────────────────┬─────────────┬──────────────┐\n");
+    export_printf("│ Process │  Arrival Time   │ Burst Time  │   Priority   │\n");
+    export_printf("├─────────┼─────────────────┼─────────────┼──────────────┤\n");
     
     for (int i = 0; i < n; i++) {
-        export_printf("║ P%-6d║ %-3d║ %-3d║ %-3d║ %-4d║ %-4d║ %-4d║\n",
+        export_printf("│   P%-4d │       %-3d       │      %-3d    │      %-3d     │\n",
+               proc[i].pid,
+               proc[i].arrival_time,
+               proc[i].burst_time,
+               proc[i].priority);
+    }
+    
+    export_printf("└─────────┴─────────────────┴─────────────┴──────────────┘\n");
+}
+
+// In bảng kết quả
+void print_table(Process proc[], int n) {
+    export_printf("\n┌─────────┬─────┬─────┬─────┬──────┬──────┬──────┐\n");
+    export_printf("│ Process │ AT  │ BT  │ CT  │ TAT  │  WT  │  RT  │\n");
+    export_printf("├─────────┼─────┼─────┼─────┼──────┼──────┼──────┤\n");
+    
+    for (int i = 0; i < n; i++) {
+        export_printf("│  P%-5d │ %-3d │ %-3d │ %-3d │ %-4d │ %-4d │ %-4d │\n",
                proc[i].pid,
                proc[i].arrival_time,
                proc[i].burst_time,
@@ -143,15 +99,16 @@ void print_table(Process proc[], int n) {
                proc[i].response_time);
     }
     
-    export_printf("╚════════╩════╩════╩════╩═════╩═════╩═════╝\n");
+    export_printf("└─────────┴─────┴─────┴─────┴──────┴──────┴──────┘\n");
 }
 
-// Hàm tính toán và hiển thị metrics
+// Tính toán metrics - FIXED: Tính trước khi in
 void calculate_metrics(Process proc[], int n, Metrics *metrics) {
     float total_wt = 0, total_tat = 0, total_rt = 0;
     int max_completion = 0;
     int total_burst = 0;
     
+    // TÍNH TOÁN TRƯỚC
     for (int i = 0; i < n; i++) {
         proc[i].turnaround_time = proc[i].completion_time - proc[i].arrival_time;
         proc[i].waiting_time = proc[i].turnaround_time - proc[i].burst_time;
@@ -166,41 +123,24 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
         }
     }
     
+    // IN BẢNG SAU KHI TÍNH
     print_table(proc, n);
     
+    // Tính metrics
     metrics->avg_turnaround = total_tat / n;
     metrics->avg_waiting = total_wt / n;
     metrics->avg_response = total_rt / n;
     metrics->total_time = max_completion;
     metrics->cpu_utilization = (float)total_burst / max_completion * 100;
     
-    export_printf("\n📊 KẾT QUẢ TRUNG BÌNH:\n");
-    export_printf("   Total Execution Time:    %d\n", metrics->total_time);
-    export_printf("   CPU Utilization:         %.2f%%\n", metrics->cpu_utilization);
-    export_printf("   Average Turnaround Time: %.2f\n", metrics->avg_turnaround);
-    export_printf("   Average Waiting Time:    %.2f\n", metrics->avg_waiting);
-    export_printf("   Average Response Time:   %.2f\n", metrics->avg_response);
-}
-
-// Menu chính
-void print_menu() {
-    printf("\n");
-    printf("╔═══════════════════════════════════════════════╗\n");
-    printf("║   CPU SCHEDULING ALGORITHMS SIMULATOR        ║\n");
-    printf("║   NetBSD - Lập trình Hệ thống               ║\n");
-    printf("╚═══════════════════════════════════════════════╝\n");
-    printf("\n");
-    printf("1. FCFS (First Come First Served)\n");
-    printf("2. SJF (Shortest Job First)\n");
-    printf("3. SRTF (Shortest Remaining Time First)\n");
-    printf("4. Round Robin\n");
-    printf("5. Priority Scheduling (Non-preemptive)\n");
-    printf("6. Priority Scheduling (Preemptive)\n");
-    printf("7. Chạy tất cả để so sánh\n");
-    printf("8. Bật/Tắt Export to File\n");
-    printf("0. Thoát\n");
-    printf("\n");
-    if (export_enabled) {
-        printf("📝 Export: BẬT\n");
-    }
+    // In kết quả
+    export_printf("\n╭─────────────────────────────────────────────────────╮\n");
+    export_printf("│              📊 PERFORMANCE METRICS                 │\n");
+    export_printf("├─────────────────────────────────────────────────────┤\n");
+    export_printf("│  Total Execution Time    : %-6d time units       │\n", metrics->total_time);
+    export_printf("│  CPU Utilization         : %-6.2f %%               │\n", metrics->cpu_utilization);
+    export_printf("│  Avg Turnaround Time     : %-6.2f time units      │\n", metrics->avg_turnaround);
+    export_printf("│  Avg Waiting Time        : %-6.2f time units      │\n", metrics->avg_waiting);
+    export_printf("│  Avg Response Time       : %-6.2f time units      │\n", metrics->avg_response);
+    export_printf("╰─────────────────────────────────────────────────────╯\n");
 }

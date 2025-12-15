@@ -5,7 +5,6 @@ FILE *output_file = NULL;
 int export_enabled = 0;
 char export_filename[256] = "";
 
-// Lưu metrics của từng thuật toán để so sánh
 typedef struct {
     char name[50];
     Metrics metrics;
@@ -14,9 +13,7 @@ typedef struct {
 AlgorithmResult results[6];
 int result_count = 0;
 
-// Mở file để export
 void enable_export(const char *filename) {
-    // Đóng file cũ nếu có
     if (output_file != NULL) {
         fclose(output_file);
         output_file = NULL;
@@ -32,42 +29,42 @@ void enable_export(const char *filename) {
     strcpy(export_filename, filename);
     result_count = 0;
     
-    // Ghi header siêu đẹp
     time_t now = time(NULL);
-    fprintf(output_file, "╔═══════════════════════════════════════════════════════════════════════════════╗\n");
-    fprintf(output_file, "║                                                                               ║\n");
-    fprintf(output_file, "║               🖥️  CPU SCHEDULING ALGORITHMS - ANALYSIS REPORT  🖥️              ║\n");
-    fprintf(output_file, "║                                                                               ║\n");
-    fprintf(output_file, "║                         NetBSD System Programming Project                     ║\n");
-    fprintf(output_file, "║                                                                               ║\n");
-    fprintf(output_file, "╚═══════════════════════════════════════════════════════════════════════════════╝\n");
+    struct tm *t = localtime(&now);
+    
+    fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
     fprintf(output_file, "\n");
-    fprintf(output_file, "📅 Report Generated: %s", ctime(&now));
-    fprintf(output_file, "📂 Source File: data/processes.txt\n");
-    fprintf(output_file, "⚙️  Time Quantum (Round Robin): %d\n", TIME_QUANTUM);
+    fprintf(output_file, "           >>> CPU SCHEDULING ALGORITHMS SIMULATOR <<<\n");
+    fprintf(output_file, "                  NetBSD - System Programming\n");
     fprintf(output_file, "\n");
-    fprintf(output_file, "═══════════════════════════════════════════════════════════════════════════════\n");
+    fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
+    fprintf(output_file, "\n");
+    fprintf(output_file, "+------------------------ SYSTEM CONFIGURATION -------------------------+\n");
+    fprintf(output_file, "| Start Time       : %04d-%02d-%02d %02d:%02d:%02d                              |\n",
+            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+            t->tm_hour, t->tm_min, t->tm_sec);
+    fprintf(output_file, "| Input File       : data/processes.txt                                 |\n");
+    fprintf(output_file, "| Time Quantum     : %d                                                  |\n", TIME_QUANTUM);
+    fprintf(output_file, "| Total Algorithms : 6                                                  |\n");
+    fprintf(output_file, "+-----------------------------------------------------------------------+\n");
     fprintf(output_file, "\n");
 }
 
-// Đóng file export
 void disable_export() {
     if (output_file != NULL) {
         fprintf(output_file, "\n\n");
-        fprintf(output_file, "╔═══════════════════════════════════════════════════════════════════════════════╗\n");
-        fprintf(output_file, "║                                                                               ║\n");
-        fprintf(output_file, "║                          🎉 END OF REPORT 🎉                                  ║\n");
-        fprintf(output_file, "║                                                                               ║\n");
-        fprintf(output_file, "║              Thank you for using CPU Scheduling Simulator!                   ║\n");
-        fprintf(output_file, "║                                                                               ║\n");
-        fprintf(output_file, "╚═══════════════════════════════════════════════════════════════════════════════╝\n");
+        fprintf(output_file, "════════════════════════════════ SIMULATION END ═══════════════════════════════\n");
+        fprintf(output_file, "\n");
+        fprintf(output_file, "[✓] All algorithms completed successfully\n");
+        fprintf(output_file, "[✓] Report saved to: %s\n", export_filename);
+        fprintf(output_file, "\n");
+        fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
         fclose(output_file);
         output_file = NULL;
     }
     export_enabled = 0;
 }
 
-// Printf đồng thời ra console và file
 void export_printf(const char *format, ...) {
     va_list args1, args2;
     
@@ -82,17 +79,34 @@ void export_printf(const char *format, ...) {
     }
 }
 
-// Export header của thuật toán
 void export_header(const char *algorithm_name) {
-    export_printf("\n\n");
-    export_printf("╔═══════════════════════════════════════════════════════════════════════════════╗\n");
-    export_printf("║                                                                               ║\n");
-    export_printf("║   %-75s ║\n", algorithm_name);
-    export_printf("║                                                                               ║\n");
-    export_printf("╚═══════════════════════════════════════════════════════════════════════════════╝\n");
+    export_printf("\n");
+    export_printf("════════════════════════════════════════════════════════════════════════════════\n");
+    export_printf("\n");
+    export_printf("                         %s\n", algorithm_name);
+    export_printf("\n");
+    export_printf("════════════════════════════════════════════════════════════════════════════════\n");
+    export_printf("\n");
 }
 
-// Lưu metrics để so sánh
+// Log chi tiết từng event
+void log_event(int time, const char *event_type, int pid, const char *details) {
+    char timestamp[20];
+    struct tm *t = localtime(&(time_t){time});
+    
+    if (export_enabled && output_file != NULL) {
+        fprintf(output_file, "[Time:%3d] [%s] P%-2d | %-50s\n", 
+                time, event_type, pid, details);
+    }
+}
+
+// Log queue status
+void log_queue(int time, const char *queue_content) {
+    if (export_enabled && output_file != NULL) {
+        fprintf(output_file, "[Time:%3d] [Queue] %s\n", time, queue_content);
+    }
+}
+
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics) {
     if (result_count < 6) {
         strcpy(results[result_count].name, algorithm_name);
@@ -101,103 +115,43 @@ void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *
     }
 }
 
-// Export comparison summary
 void export_comparison_summary() {
     if (!export_enabled || output_file == NULL || result_count == 0) return;
     
-    fprintf(output_file, "\n\n\n");
-    fprintf(output_file, "╔═══════════════════════════════════════════════════════════════════════════════╗\n");
-    fprintf(output_file, "║                                                                               ║\n");
-    fprintf(output_file, "║                    📊 COMPARATIVE ANALYSIS OF ALGORITHMS 📊                   ║\n");
-    fprintf(output_file, "║                                                                               ║\n");
-    fprintf(output_file, "╚═══════════════════════════════════════════════════════════════════════════════╝\n");
-    fprintf(output_file, "\n");
-    
-    // Bảng so sánh
-    fprintf(output_file, "┌───────────────────────────────┬──────────┬──────────┬──────────┬──────────┬──────────┐\n");
-    fprintf(output_file, "│         Algorithm             │   TAT    │    WT    │    RT    │   Time   │  CPU %%   │\n");
-    fprintf(output_file, "├───────────────────────────────┼──────────┼──────────┼──────────┼──────────┼──────────┤\n");
+    fprintf(output_file, "\n\n");
+    fprintf(output_file, "+----------------------------- FINAL STATISTICS -----------------------------+\n");
+    fprintf(output_file, "|\n");
+    fprintf(output_file, "| %-30s | %8s | %8s | %8s | %8s |\n", 
+            "Algorithm", "Avg TAT", "Avg WT", "Avg RT", "CPU %%");
+    fprintf(output_file, "|%-30s-|----------|----------|----------|----------|\n", "------------------------------");
     
     for (int i = 0; i < result_count; i++) {
-        fprintf(output_file, "│ %-29s │  %6.2f  │  %6.2f  │  %6.2f  │    %3d   │  %6.2f  │\n",
+        fprintf(output_file, "| %-30s | %8.2f | %8.2f | %8.2f | %7.2f%% |\n",
                 results[i].name,
                 results[i].metrics.avg_turnaround,
                 results[i].metrics.avg_waiting,
                 results[i].metrics.avg_response,
-                results[i].metrics.total_time,
                 results[i].metrics.cpu_utilization);
     }
     
-    fprintf(output_file, "└───────────────────────────────┴──────────┴──────────┴──────────┴──────────┴──────────┘\n");
+    fprintf(output_file, "|\n");
+    fprintf(output_file, "+----------------------------------------------------------------------------+\n");
     
-    // Tìm thuật toán tốt nhất
+    // Find best
+    int best_tat = 0, best_wt = 0, best_rt = 0;
+    for (int i = 1; i < result_count; i++) {
+        if (results[i].metrics.avg_turnaround < results[best_tat].metrics.avg_turnaround) best_tat = i;
+        if (results[i].metrics.avg_waiting < results[best_wt].metrics.avg_waiting) best_wt = i;
+        if (results[i].metrics.avg_response < results[best_rt].metrics.avg_response) best_rt = i;
+    }
+    
     fprintf(output_file, "\n");
-    fprintf(output_file, "┌───────────────────────────────────────────────────────────────────────────────┐\n");
-    fprintf(output_file, "│                         🏆 BEST ALGORITHMS 🏆                                 │\n");
-    fprintf(output_file, "├───────────────────────────────────────────────────────────────────────────────┤\n");
-    
-    // Best TAT
-    int best_tat_idx = 0;
-    for (int i = 1; i < result_count; i++) {
-        if (results[i].metrics.avg_turnaround < results[best_tat_idx].metrics.avg_turnaround) {
-            best_tat_idx = i;
-        }
-    }
-    fprintf(output_file, "│  🥇 Lowest Avg Turnaround Time : %-30s (%.2f)      │\n",
-            results[best_tat_idx].name, results[best_tat_idx].metrics.avg_turnaround);
-    
-    // Best WT
-    int best_wt_idx = 0;
-    for (int i = 1; i < result_count; i++) {
-        if (results[i].metrics.avg_waiting < results[best_wt_idx].metrics.avg_waiting) {
-            best_wt_idx = i;
-        }
-    }
-    fprintf(output_file, "│  🥇 Lowest Avg Waiting Time    : %-30s (%.2f)      │\n",
-            results[best_wt_idx].name, results[best_wt_idx].metrics.avg_waiting);
-    
-    // Best RT
-    int best_rt_idx = 0;
-    for (int i = 1; i < result_count; i++) {
-        if (results[i].metrics.avg_response < results[best_rt_idx].metrics.avg_response) {
-            best_rt_idx = i;
-        }
-    }
-    fprintf(output_file, "│  🥇 Lowest Avg Response Time   : %-30s (%.2f)      │\n",
-            results[best_rt_idx].name, results[best_rt_idx].metrics.avg_response);
-    
-    // Best CPU utilization
-    int best_cpu_idx = 0;
-    for (int i = 1; i < result_count; i++) {
-        if (results[i].metrics.cpu_utilization > results[best_cpu_idx].metrics.cpu_utilization) {
-            best_cpu_idx = i;
-        }
-    }
-    fprintf(output_file, "│  🥇 Highest CPU Utilization    : %-30s (%.2f%%)    │\n",
-            results[best_cpu_idx].name, results[best_cpu_idx].metrics.cpu_utilization);
-    
-    fprintf(output_file, "└───────────────────────────────────────────────────────────────────────────────┘\n");
-    
-    // Recommendations
-    fprintf(output_file, "\n");
-    fprintf(output_file, "┌───────────────────────────────────────────────────────────────────────────────┐\n");
-    fprintf(output_file, "│                            💡 RECOMMENDATIONS 💡                              │\n");
-    fprintf(output_file, "├───────────────────────────────────────────────────────────────────────────────┤\n");
-    fprintf(output_file, "│                                                                               │\n");
-    fprintf(output_file, "│  • For minimum average waiting time → Use: %-34s │\n", results[best_wt_idx].name);
-    fprintf(output_file, "│  • For best response time        → Use: %-34s │\n", results[best_rt_idx].name);
-    fprintf(output_file, "│  • For fairness & preventing starvation → Consider: Round Robin              │\n");
-    fprintf(output_file, "│  • For short processes priority    → Consider: SJF or SRTF                   │\n");
-    fprintf(output_file, "│  • For system with priorities      → Use: Priority Scheduling                │\n");
-    fprintf(output_file, "│                                                                               │\n");
-    fprintf(output_file, "└───────────────────────────────────────────────────────────────────────────────┘\n");
-    
-    printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    printf("📊 COMPARISON SUMMARY\n");
-    printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    printf("🥇 Best Avg Turnaround: %s (%.2f)\n", results[best_tat_idx].name, results[best_tat_idx].metrics.avg_turnaround);
-    printf("🥇 Best Avg Waiting   : %s (%.2f)\n", results[best_wt_idx].name, results[best_wt_idx].metrics.avg_waiting);
-    printf("🥇 Best Avg Response  : %s (%.2f)\n", results[best_rt_idx].name, results[best_rt_idx].metrics.avg_response);
-    printf("🥇 Best CPU Usage     : %s (%.2f%%)\n", results[best_cpu_idx].name, results[best_cpu_idx].metrics.cpu_utilization);
-    printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    fprintf(output_file, "+--------------------------- BEST PERFORMERS --------------------------------+\n");
+    fprintf(output_file, "| [★] Best Avg Turnaround Time : %-30s (%.2f) |\n", 
+            results[best_tat].name, results[best_tat].metrics.avg_turnaround);
+    fprintf(output_file, "| [★] Best Avg Waiting Time    : %-30s (%.2f) |\n",
+            results[best_wt].name, results[best_wt].metrics.avg_waiting);
+    fprintf(output_file, "| [★] Best Avg Response Time   : %-30s (%.2f) |\n",
+            results[best_rt].name, results[best_rt].metrics.avg_response);
+    fprintf(output_file, "+----------------------------------------------------------------------------+\n");
 }

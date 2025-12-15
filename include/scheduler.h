@@ -10,27 +10,21 @@
 // Constants
 #define MAX_PROCESSES 10
 #define TIME_QUANTUM 4
-#define MAX_GANTT_LENGTH 1000
+#define MAX_GANTT_LENGTH 2000  // Increased for safety
 
 // Process structure
 typedef struct {
     int pid;              // Process ID
-    int arrival_time;     // Thời điểm đến
-    int burst_time;       // Thời gian CPU cần
-    int remaining_time;   // Thời gian còn lại (cho preemptive)
-    int priority;         // Độ ưu tiên (số nhỏ = ưu tiên cao)
-    int completion_time;  // Thời điểm hoàn thành
-    int waiting_time;     // Thời gian chờ
-    int turnaround_time;  // Thời gian hoàn thành
-    int response_time;    // Thời gian phản hồi
-    int first_run;        // Đánh dấu lần đầu chạy
+    int arrival_time;     // Arrival time
+    int burst_time;       // CPU burst time
+    int remaining_time;   // Remaining time (for preemptive)
+    int priority;         // Priority (lower number = higher priority)
+    int completion_time;  // Completion time
+    int waiting_time;     // Waiting time
+    int turnaround_time;  // Turnaround time
+    int response_time;    // Response time
+    int first_run;        // First run flag
 } Process;
-
-// Gantt chart structure
-typedef struct {
-    char chart[MAX_GANTT_LENGTH];
-    int length;
-} GanttChart;
 
 // Metrics structure
 typedef struct {
@@ -41,18 +35,16 @@ typedef struct {
     int total_time;
 } Metrics;
 
-// Global variable for output file
+// Global variables for export
 extern FILE *output_file;
 extern int export_enabled;
 extern char export_filename[256];
 
 // Function prototypes - Utils
 int read_from_file(Process proc[], int *n, const char *filename);
-void input_processes(Process proc[], int *n);
-void use_sample_data(Process proc[], int *n);
 void calculate_metrics(Process proc[], int n, Metrics *metrics);
-void print_menu();
 void print_table(Process proc[], int n);
+void print_input_table(Process proc[], int n);
 
 // Export functions
 void enable_export(const char *filename);
@@ -60,9 +52,9 @@ void disable_export();
 void export_printf(const char *format, ...);
 void export_header(const char *algorithm_name);
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics);
-void export_gantt_chart(const char *chart);
+void export_comparison_summary();
 
-// Function prototypes - Algorithms
+// Algorithm functions
 void fcfs(Process proc[], int n);
 void sjf(Process proc[], int n);
 void srtf(Process proc[], int n);

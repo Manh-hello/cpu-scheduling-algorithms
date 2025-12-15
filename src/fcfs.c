@@ -24,6 +24,11 @@ void fcfs(Process proc[], int n) {
         if (current_time < proc[i].arrival_time) {
             sprintf(details, "IDLE | CPU waiting for next process");
             log_event(current_time, "CPU", 0, details);
+            
+            // Simulate idle time passing
+            for (int t = current_time; t < proc[i].arrival_time; t++) {
+                simulate_time_unit();
+            }
             current_time = proc[i].arrival_time;
         }
         
@@ -38,8 +43,9 @@ void fcfs(Process proc[], int n) {
                 proc[i].response_time);
         log_event(current_time, "RUN", proc[i].pid, details);
         
-        // Process running - log every 2 time units
+        // Process running - simulate actual execution
         for (int t = 1; t <= proc[i].burst_time; t++) {
+            simulate_time_unit();  // Wait for 1 time unit
             current_time++;
             
             if (t == proc[i].burst_time) {
@@ -48,7 +54,7 @@ void fcfs(Process proc[], int n) {
                         current_time, current_time - proc[i].arrival_time);
                 log_event(current_time, "FIN", proc[i].pid, details);
             } else if (t % 2 == 0 && proc[i].burst_time > 3) {
-                // Log progress (only for longer processes)
+                // Log progress
                 sprintf(details, "RUNNING  | Progress: %d/%d | Still executing", 
                         t, proc[i].burst_time);
                 log_event(current_time, "RUN", proc[i].pid, details);
@@ -57,7 +63,7 @@ void fcfs(Process proc[], int n) {
         
         proc[i].completion_time = current_time;
         
-        // Show ready queue if there are processes waiting
+        // Show ready queue
         if (i < n - 1) {
             char queue_str[200] = "Ready Queue: [";
             int queue_count = 0;
@@ -80,7 +86,6 @@ void fcfs(Process proc[], int n) {
     export_printf("============================= GANTT CHART ==================================\n\n");
     export_printf("Timeline: ");
     
-    // Print Gantt chart
     current_time = 0;
     for (int i = 0; i < n; i++) {
         if (current_time < proc[i].arrival_time) {
@@ -92,7 +97,6 @@ void fcfs(Process proc[], int n) {
     }
     export_printf("|\n");
     
-    // Print timeline
     export_printf("Time:     ");
     current_time = 0;
     for (int i = 0; i < n; i++) {

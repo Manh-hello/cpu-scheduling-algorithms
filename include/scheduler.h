@@ -44,6 +44,7 @@ typedef struct {
 // Global variable for output file
 extern FILE *output_file;
 extern int export_enabled;
+extern char export_filename[256];
 
 // Function prototypes - Utils
 int read_from_file(Process proc[], int *n, const char *filename);

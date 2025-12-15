@@ -64,12 +64,42 @@ void input_processes(Process proc[], int *n) {
     for (int i = 0; i < *n; i++) {
         proc[i].pid = i + 1;
         printf("\nProcess P%d:\n", proc[i].pid);
-        printf("  Arrival Time: ");
-        scanf("%d", &proc[i].arrival_time);
-        printf("  Burst Time: ");
-        scanf("%d", &proc[i].burst_time);
-        printf("  Priority (1=cao): ");
-        scanf("%d", &proc[i].priority);
+        
+        // Validate Arrival Time
+        do {
+            printf("  Arrival Time: ");
+            if (scanf("%d", &proc[i].arrival_time) != 1) {
+                printf("❌ Vui lòng nhập số!\n");
+                while (getchar() != '\n');  // Clear buffer
+                proc[i].arrival_time = -1;
+            } else if (proc[i].arrival_time < 0) {
+                printf("❌ Arrival time phải >= 0!\n");
+            }
+        } while (proc[i].arrival_time < 0);
+        
+        // Validate Burst Time
+        do {
+            printf("  Burst Time: ");
+            if (scanf("%d", &proc[i].burst_time) != 1) {
+                printf("❌ Vui lòng nhập số!\n");
+                while (getchar() != '\n');
+                proc[i].burst_time = 0;
+            } else if (proc[i].burst_time <= 0) {
+                printf("❌ Burst time phải > 0!\n");
+            }
+        } while (proc[i].burst_time <= 0);
+        
+        // Validate Priority
+        do {
+            printf("  Priority (1=cao): ");
+            if (scanf("%d", &proc[i].priority) != 1) {
+                printf("❌ Vui lòng nhập số!\n");
+                while (getchar() != '\n');
+                proc[i].priority = 0;
+            } else if (proc[i].priority <= 0) {
+                printf("❌ Priority phải > 0!\n");
+            }
+        } while (proc[i].priority <= 0);
         
         proc[i].remaining_time = proc[i].burst_time;
         proc[i].first_run = 0;

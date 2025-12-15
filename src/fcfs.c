@@ -1,8 +1,7 @@
 #include "../include/scheduler.h"
 
-// FCFS - First Come First Served
 void fcfs(Process proc[], int n) {
-    export_header("🔹 FCFS (First Come First Served)");
+    export_header("ALGORITHM: FCFS (First Come First Served)");
     
     // Sort by arrival time
     for (int i = 0; i < n - 1; i++) {
@@ -15,35 +14,83 @@ void fcfs(Process proc[], int n) {
         }
     }
     
-    int current_time = 0;
-    char gantt[MAX_GANTT_LENGTH] = "";
-    char buffer[50];
+    export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
-    export_printf("\n📊 Gantt Chart:\n");
-    export_printf("   ");
+    int current_time = 0;
+    char details[100];
     
     for (int i = 0; i < n; i++) {
-        // Handle idle time
+        // Process arrives
         if (current_time < proc[i].arrival_time) {
-            sprintf(buffer, "| IDLE ");
-            if (strlen(gantt) + strlen(buffer) < MAX_GANTT_LENGTH - 1) {
-                strcat(gantt, buffer);
-            }
+            sprintf(details, "IDLE | CPU waiting for next process");
+            log_event(current_time, "CPU", 0, details);
             current_time = proc[i].arrival_time;
         }
         
+        sprintf(details, "ARRIVED | AT=%d, BT=%d | Entering ready queue", 
+                proc[i].arrival_time, proc[i].burst_time);
+        log_event(current_time, "ARR", proc[i].pid, details);
+        
+        // Process starts
         proc[i].response_time = current_time - proc[i].arrival_time;
-        current_time += proc[i].burst_time;
+        sprintf(details, "START   | Response Time=%d | Beginning execution", 
+                proc[i].response_time);
+        log_event(current_time, "RUN", proc[i].pid, details);
+        
+        // Process running
+        for (int t = 1; t <= proc[i].burst_time; t++) {
+            current_time++;
+            if (t == proc[i].burst_time) {
+                sprintf(details, "COMPLETE | CT=%d | Finished execution", current_time);
+                log_event(current_time, "FIN", proc[i].pid, details);
+            } else if (t % 2 == 0) {  // Log every 2 time units
+                sprintf(details, "RUNNING  | Progress: %d/%d | Still executing", 
+                        t, proc[i].burst_time);
+                log_event(current_time, "RUN", proc[i].pid, details);
+            }
+        }
+        
         proc[i].completion_time = current_time;
         
-        sprintf(buffer, "| P%d ", proc[i].pid);
-        if (strlen(gantt) + strlen(buffer) < MAX_GANTT_LENGTH - 1) {
-            strcat(gantt, buffer);
+        // Show ready queue
+        if (i < n - 1) {
+            char queue_str[100] = "Ready Queue: [";
+            for (int j = i + 1; j < n && proc[j].arrival_time <= current_time; j++) {
+                char temp[10];
+                sprintf(temp, "P%d ", proc[j].pid);
+                strcat(queue_str, temp);
+            }
+            strcat(queue_str, "]");
+            log_queue(current_time, queue_str);
         }
     }
-    strcat(gantt, "|");
     
-    export_printf("%s\n", gantt);
+    export_printf("\n");
+    export_printf("============================= GANTT CHART ==================================\n\n");
+    export_printf("Timeline: ");
+    
+    current_time = 0;
+    for (int i = 0; i < n; i++) {
+        if (current_time < proc[i].arrival_time) {
+            export_printf("| IDLE ");
+            current_time = proc[i].arrival_time;
+        }
+        export_printf("| P%d ", proc[i].pid);
+        current_time = proc[i].completion_time;
+    }
+    export_printf("|\n");
+    
+    export_printf("Time:     ");
+    current_time = 0;
+    for (int i = 0; i < n; i++) {
+        if (current_time < proc[i].arrival_time) {
+            export_printf(" %3d   ", current_time);
+            current_time = proc[i].arrival_time;
+        }
+        export_printf(" %3d  ", current_time);
+        current_time = proc[i].completion_time;
+    }
+    export_printf(" %3d\n", current_time);
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);

@@ -11,11 +11,22 @@ DATADIR = data
 RESULTSDIR = results
 
 # Source files
-SRCS = $(wildcard $(SRCDIR)/*.c)
-OBJS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
+SRCS = $(SRCDIR)/main.c $(SRCDIR)/fcfs.c $(SRCDIR)/sjf.c $(SRCDIR)/srtf.c \
+       $(SRCDIR)/rr.c $(SRCDIR)/priority.c $(SRCDIR)/utils.c $(SRCDIR)/export.c
+
+OBJS = $(OBJDIR)/main.o $(OBJDIR)/fcfs.o $(OBJDIR)/sjf.o $(OBJDIR)/srtf.o \
+       $(OBJDIR)/rr.o $(OBJDIR)/priority.o $(OBJDIR)/utils.o $(OBJDIR)/export.o
+
+# Colors
+RED = \033[0;31m
+GREEN = \033[0;32m
+YELLOW = \033[1;33m
+BLUE = \033[0;34m
+NC = \033[0m
 
 # Main target
 all: directories $(TARGET)
+	@echo "$(GREEN)✓ Build successful: $(TARGET)$(NC)"
 
 # Create necessary directories
 directories:
@@ -24,35 +35,51 @@ directories:
 
 # Link object files to create executable
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
-	@echo "✓ Build successful: $(TARGET)"
+	@echo "$(YELLOW)Linking...$(NC)"
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
 # Compile source files to object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
+	@echo "$(BLUE)Compiling $<...$(NC)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean build files
 clean:
-	rm -rf $(OBJDIR) $(TARGET)
-	@echo "✓ Cleaned build files"
+	@echo "$(RED)Cleaning...$(NC)"
+	@rm -rf $(OBJDIR) $(TARGET)
+	@echo "$(GREEN)✓ Cleaned!$(NC)"
 
 # Clean all including results
 cleanall: clean
-	rm -rf $(RESULTSDIR)/*.txt
-	@echo "✓ Cleaned all files"
+	@rm -rf $(RESULTSDIR)/*.txt
+	@echo "$(GREEN)✓ Cleaned all files$(NC)"
 
 # Run with sample data
 run: $(TARGET)
 	./$(TARGET)
 
+# Run with default processes.txt
+runfile: $(TARGET)
+	@echo "3" | ./$(TARGET)
+
 # Run tests
 test: $(TARGET)
-	@echo "Running tests..."
+	@echo "$(BLUE)Running tests...$(NC)"
 	@for file in $(DATADIR)/test_*.txt; do \
-		echo "\n=== Testing with $$file ==="; \
-		echo "1\n3\n$$file\n7\n8\nresults/$$(basename $$file .txt)_result.txt\n0" | ./$(TARGET); \
+		if [ -f "$$file" ]; then \
+			echo ""; \
+			echo "$(YELLOW)=== Testing with $$(basename $$file) ===$(NC)"; \
+			base=$$(basename $$file .txt); \
+			echo "3\n$$file\n8\nresults/$${base}_result.txt\n7\n0" | ./$(TARGET) > /dev/null 2>&1; \
+			if [ -f "results/$${base}_result.txt" ]; then \
+				echo "$(GREEN)✓ Test passed: results/$${base}_result.txt$(NC)"; \
+			else \
+				echo "$(RED)✗ Test failed$(NC)"; \
+			fi; \
+		fi; \
 	done
-	@echo "\n✓ All tests completed. Check results/ folder"
+	@echo ""
+	@echo "$(GREEN)✓ All tests completed$(NC)"
 
 # Help
 help:
@@ -60,10 +87,11 @@ help:
 	@echo ""
 	@echo "Usage:"
 	@echo "  make          - Build the project"
-	@echo "  make run      - Build and run"
+	@echo "  make run      - Build and run interactively"
+	@echo "  make runfile  - Run with data/processes.txt"
 	@echo "  make test     - Run all test files"
 	@echo "  make clean    - Remove build files"
 	@echo "  make cleanall - Remove build and result files"
 	@echo "  make help     - Show this help"
 
-.PHONY: all clean cleanall run test help directories
+.PHONY: all clean cleanall run runfile test help directories

@@ -122,8 +122,6 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
     int max_completion = 0;
     int total_burst = 0;
     
-    print_table(proc, n);
-    
     for (int i = 0; i < n; i++) {
         proc[i].turnaround_time = proc[i].completion_time - proc[i].arrival_time;
         proc[i].waiting_time = proc[i].turnaround_time - proc[i].burst_time;
@@ -137,6 +135,8 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
             max_completion = proc[i].completion_time;
         }
     }
+    
+    print_table(proc, n);
     
     metrics->avg_turnaround = total_tat / n;
     metrics->avg_waiting = total_wt / n;

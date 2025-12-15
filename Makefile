@@ -70,7 +70,7 @@ test: $(TARGET)
 			echo ""; \
 			echo "$(YELLOW)=== Testing with $$(basename $$file) ===$(NC)"; \
 			base=$$(basename $$file .txt); \
-			echo "3\n$$file\n8\nresults/$${base}_result.txt\n7\n0" | ./$(TARGET) > /dev/null 2>&1; \
+			printf "3\n$$file\n8\nresults/$${base}_result.txt\n7\n0\nn" | ./$(TARGET) > /dev/null 2>&1; \
 			if [ -f "results/$${base}_result.txt" ]; then \
 				echo "$(GREEN)✓ Test passed: results/$${base}_result.txt$(NC)"; \
 			else \

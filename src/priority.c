@@ -2,13 +2,15 @@
 
 // Priority Scheduling (Non-preemptive)
 void priority_non_preemptive(Process proc[], int n) {
-    printf("\n🔹 Priority Scheduling (Non-preemptive)\n");
+    export_header("🔹 Priority Scheduling (Non-preemptive)");
     
     int current_time = 0;
     int completed = 0;
     int is_completed[MAX_PROCESSES] = {0};
+    char gantt[MAX_GANTT_LENGTH] = "";
+    char buffer[50];
     
-    printf("\nGantt Chart:\n");
+    export_printf("\nGantt Chart:\n");
     
     while (completed < n) {
         int highest = -1;
@@ -35,27 +37,34 @@ void priority_non_preemptive(Process proc[], int n) {
         is_completed[highest] = 1;
         completed++;
         
-        printf("| P%d ", proc[highest].pid);
+        sprintf(buffer, "| P%d ", proc[highest].pid);
+        strcat(gantt, buffer);
     }
-    printf("|\n");
     
-    calculate_metrics(proc, n);
+    strcat(gantt, "|");
+    export_printf("%s\n", gantt);
+    
+    Metrics metrics;
+    calculate_metrics(proc, n, &metrics);
+    export_metrics("Priority (Non-preemptive)", proc, n, &metrics);
 }
 
 // Priority Scheduling (Preemptive)
 void priority_preemptive(Process proc[], int n) {
-    printf("\n🔹 Priority Scheduling (Preemptive)\n");
+    export_header("🔹 Priority Scheduling (Preemptive)");
     
     int current_time = 0;
     int completed = 0;
     int prev_proc = -1;
+    char gantt[MAX_GANTT_LENGTH] = "";
+    char buffer[50];
     
     // Reset remaining time
     for (int i = 0; i < n; i++) {
         proc[i].remaining_time = proc[i].burst_time;
     }
     
-    printf("\nGantt Chart:\n");
+    export_printf("\nGantt Chart:\n");
     
     while (completed < n) {
         int highest = -1;
@@ -84,8 +93,11 @@ void priority_preemptive(Process proc[], int n) {
         
         // In Gantt chart khi đổi process
         if (prev_proc != highest) {
-            if (prev_proc != -1) printf("| ");
-            printf("P%d ", proc[highest].pid);
+            if (prev_proc != -1) {
+                strcat(gantt, "| ");
+            }
+            sprintf(buffer, "P%d ", proc[highest].pid);
+            strcat(gantt, buffer);
         }
         
         proc[highest].remaining_time--;
@@ -97,7 +109,11 @@ void priority_preemptive(Process proc[], int n) {
             completed++;
         }
     }
-    printf("|\n");
     
-    calculate_metrics(proc, n);
+    strcat(gantt, "|");
+    export_printf("%s\n", gantt);
+    
+    Metrics metrics;
+    calculate_metrics(proc, n, &metrics);
+    export_metrics("Priority (Preemptive)", proc, n, &metrics);
 }

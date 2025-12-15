@@ -17,18 +17,19 @@ void fcfs(Process proc[], int n) {
     export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
     int current_time = 0;
-    char details[100];
+    char details[150];
     
     for (int i = 0; i < n; i++) {
-        // Process arrives
+        // Handle idle time
         if (current_time < proc[i].arrival_time) {
             sprintf(details, "IDLE | CPU waiting for next process");
             log_event(current_time, "CPU", 0, details);
             current_time = proc[i].arrival_time;
         }
         
-        sprintf(details, "ARRIVED | AT=%d, BT=%d | Entering ready queue", 
-                proc[i].arrival_time, proc[i].burst_time);
+        // Process arrives
+        sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Entering ready queue", 
+                proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
         log_event(current_time, "ARR", proc[i].pid, details);
         
         // Process starts
@@ -37,13 +38,17 @@ void fcfs(Process proc[], int n) {
                 proc[i].response_time);
         log_event(current_time, "RUN", proc[i].pid, details);
         
-        // Process running
+        // Process running - log every 2 time units
         for (int t = 1; t <= proc[i].burst_time; t++) {
             current_time++;
+            
             if (t == proc[i].burst_time) {
-                sprintf(details, "COMPLETE | CT=%d | Finished execution", current_time);
+                // Process completes
+                sprintf(details, "COMPLETE | CT=%d, TAT=%d | Finished execution", 
+                        current_time, current_time - proc[i].arrival_time);
                 log_event(current_time, "FIN", proc[i].pid, details);
-            } else if (t % 2 == 0) {  // Log every 2 time units
+            } else if (t % 2 == 0 && proc[i].burst_time > 3) {
+                // Log progress (only for longer processes)
                 sprintf(details, "RUNNING  | Progress: %d/%d | Still executing", 
                         t, proc[i].burst_time);
                 log_event(current_time, "RUN", proc[i].pid, details);
@@ -52,15 +57,21 @@ void fcfs(Process proc[], int n) {
         
         proc[i].completion_time = current_time;
         
-        // Show ready queue
+        // Show ready queue if there are processes waiting
         if (i < n - 1) {
-            char queue_str[100] = "Ready Queue: [";
+            char queue_str[200] = "Ready Queue: [";
+            int queue_count = 0;
             for (int j = i + 1; j < n && proc[j].arrival_time <= current_time; j++) {
-                char temp[10];
+                char temp[20];
                 sprintf(temp, "P%d ", proc[j].pid);
                 strcat(queue_str, temp);
+                queue_count++;
             }
-            strcat(queue_str, "]");
+            if (queue_count > 0) {
+                strcat(queue_str, "]");
+            } else {
+                strcat(queue_str, "EMPTY]");
+            }
             log_queue(current_time, queue_str);
         }
     }
@@ -69,6 +80,7 @@ void fcfs(Process proc[], int n) {
     export_printf("============================= GANTT CHART ==================================\n\n");
     export_printf("Timeline: ");
     
+    // Print Gantt chart
     current_time = 0;
     for (int i = 0; i < n; i++) {
         if (current_time < proc[i].arrival_time) {
@@ -80,11 +92,12 @@ void fcfs(Process proc[], int n) {
     }
     export_printf("|\n");
     
+    // Print timeline
     export_printf("Time:     ");
     current_time = 0;
     for (int i = 0; i < n; i++) {
         if (current_time < proc[i].arrival_time) {
-            export_printf(" %3d   ", current_time);
+            export_printf(" %3d  ", current_time);
             current_time = proc[i].arrival_time;
         }
         export_printf(" %3d  ", current_time);

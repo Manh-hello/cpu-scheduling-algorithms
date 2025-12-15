@@ -1,11 +1,13 @@
 #include "../include/scheduler.h"
 #include <stdarg.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 FILE *output_file = NULL;
 int export_enabled = 0;
 char export_filename[256] = "";
-struct timeval start_time;  // Store simulation start time
+struct timeval simulation_start_time;  // Start of simulation
+int time_scale_ms = 100;  // Each simulation time unit = 100ms real time
 
 typedef struct {
     char name[50];
@@ -14,6 +16,28 @@ typedef struct {
 
 AlgorithmResult results[6];
 int result_count = 0;
+
+// Get elapsed time since simulation start in seconds
+double get_elapsed_time() {
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    double elapsed = (now.tv_sec - simulation_start_time.tv_sec) +
+                    (now.tv_usec - simulation_start_time.tv_usec) / 1000000.0;
+    return elapsed;
+}
+
+// Format elapsed time as HH:MM:SS.mmm
+void format_elapsed_time(char *buffer, double elapsed) {
+    int hours = (int)(elapsed / 3600);
+    int minutes = (int)((elapsed - hours * 3600) / 60);
+    double seconds = elapsed - hours * 3600 - minutes * 60;
+    sprintf(buffer, "%02d:%02d:%06.3f", hours, minutes, seconds);
+}
+
+// Sleep to simulate time passing
+void simulate_time_unit() {
+    usleep(time_scale_ms * 1000);  // Convert ms to microseconds
+}
 
 void enable_export(const char *filename) {
     if (output_file != NULL) {
@@ -31,8 +55,8 @@ void enable_export(const char *filename) {
     strcpy(export_filename, filename);
     result_count = 0;
     
-    // Get start time for simulation
-    gettimeofday(&start_time, NULL);
+    // Initialize simulation start time
+    gettimeofday(&simulation_start_time, NULL);
     
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
@@ -41,6 +65,7 @@ void enable_export(const char *filename) {
     fprintf(output_file, "\n");
     fprintf(output_file, "           >>> CPU SCHEDULING ALGORITHMS SIMULATOR <<<\n");
     fprintf(output_file, "                  NetBSD - System Programming\n");
+    fprintf(output_file, "                 REAL-TIME SIMULATION MODE\n");
     fprintf(output_file, "\n");
     fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
     fprintf(output_file, "\n");
@@ -50,29 +75,30 @@ void enable_export(const char *filename) {
             t->tm_hour, t->tm_min, t->tm_sec);
     fprintf(output_file, "| Input File       : data/processes.txt                                 |\n");
     fprintf(output_file, "| Time Quantum     : %d                                                  |\n", TIME_QUANTUM);
+    fprintf(output_file, "| Time Scale       : 1 time unit = %d ms                                |\n", time_scale_ms);
     fprintf(output_file, "| Total Algorithms : 6                                                  |\n");
     fprintf(output_file, "+-----------------------------------------------------------------------+\n");
     fprintf(output_file, "\n");
+    
+    printf("\n⏱️  Real-time simulation: 1 time unit = %d ms\n", time_scale_ms);
+    printf("    (You can see time actually passing!)\n\n");
 }
 
 void disable_export() {
     if (output_file != NULL) {
-        // Calculate total elapsed time
-        struct timeval end_time;
-        gettimeofday(&end_time, NULL);
-        long elapsed_ms = (end_time.tv_sec - start_time.tv_sec) * 1000 +
-                         (end_time.tv_usec - start_time.tv_usec) / 1000;
+        double total_elapsed = get_elapsed_time();
         
         fprintf(output_file, "\n\n");
         fprintf(output_file, "════════════════════════════════ SIMULATION END ═══════════════════════════════\n");
         fprintf(output_file, "\n");
         fprintf(output_file, "[✓] All algorithms completed successfully\n");
-        fprintf(output_file, "[✓] Total execution time: %ld ms\n", elapsed_ms);
+        fprintf(output_file, "[✓] Total simulation time: %.3f seconds\n", total_elapsed);
         fprintf(output_file, "[✓] Report saved to: %s\n", export_filename);
         fprintf(output_file, "\n");
         fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
         fclose(output_file);
         output_file = NULL;
+        
         printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
         printf("📊 COMPARISON SUMMARY\n");
         printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
@@ -88,7 +114,7 @@ void disable_export() {
             printf("🥇 Best Avg Response  : %s (%.2f)\n", results[best_rt].name, results[best_rt].metrics.avg_response);
         }
         printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-        printf("⏱️  Total simulation time: %ld ms\n", elapsed_ms);
+        printf("⏱️  Total real simulation time: %.3f seconds\n", total_elapsed);
         printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     }
     export_enabled = 0;
@@ -106,49 +132,53 @@ void export_printf(const char *format, ...) {
         vfprintf(output_file, format, args2);
         va_end(args2);
     }
+    
+    fflush(stdout);  // Force immediate display
 }
 
 void export_header(const char *algorithm_name) {
-    // Get current real time
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
+    char time_str[32];
+    format_elapsed_time(time_str, get_elapsed_time());
     
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");
     export_printf("\n");
     export_printf("                         %s\n", algorithm_name);
-    export_printf("                    Started at: %02d:%02d:%02d\n", t->tm_hour, t->tm_min, t->tm_sec);
+    export_printf("                    Started at: %s (elapsed)\n", time_str);
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");
     export_printf("\n");
 }
 
-// Log chi tiết từng event - với REAL timestamp
+// Log event with real elapsed time
 void log_event(int sim_time, const char *event_type, int pid, const char *details) {
-    // Get current real time
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
+    (void)sim_time;  // Not used anymore, we use real elapsed time
+    
+    char time_str[32];
+    format_elapsed_time(time_str, get_elapsed_time());
     
     if (pid > 0) {
-        export_printf("[%02d:%02d:%02d][SimTime:%3d][%s] P%-2d | %s\n", 
-                     t->tm_hour, t->tm_min, t->tm_sec, sim_time, event_type, pid, details);
+        export_printf("[%s] [%s] P%-2d | %s\n", 
+                     time_str, event_type, pid, details);
     } else {
-        export_printf("[%02d:%02d:%02d][SimTime:%3d][%s]     | %s\n",
-                     t->tm_hour, t->tm_min, t->tm_sec, sim_time, event_type, details);
+        export_printf("[%s] [%s]     | %s\n",
+                     time_str, event_type, details);
     }
 }
 
-// Log queue status - với REAL timestamp
+// Log queue status with real elapsed time
 void log_queue(int sim_time, const char *queue_content) {
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
-    export_printf("[%02d:%02d:%02d][SimTime:%3d][Queue] %s\n",
-                 t->tm_hour, t->tm_min, t->tm_sec, sim_time, queue_content);
+    (void)sim_time;  // Not used
+    
+    char time_str[32];
+    format_elapsed_time(time_str, get_elapsed_time());
+    
+    export_printf("[%s] [Queue] %s\n", time_str, queue_content);
 }
 
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics) {
-    (void)proc;  // Unused parameter
-    (void)n;     // Unused parameter
+    (void)proc;
+    (void)n;
     
     if (result_count < 6) {
         strcpy(results[result_count].name, algorithm_name);
@@ -179,7 +209,6 @@ void export_comparison_summary() {
     fprintf(output_file, "|\n");
     fprintf(output_file, "+----------------------------------------------------------------------------+\n");
     
-    // Find best
     int best_tat = 0, best_wt = 0, best_rt = 0;
     for (int i = 1; i < result_count; i++) {
         if (results[i].metrics.avg_turnaround < results[best_tat].metrics.avg_turnaround) best_tat = i;

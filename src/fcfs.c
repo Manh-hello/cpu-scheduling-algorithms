@@ -1,9 +1,8 @@
-
 #include "../include/scheduler.h"
 
 // FCFS - First Come First Served
 void fcfs(Process proc[], int n) {
-    printf("\n🔹 FCFS (First Come First Served)\n");
+    export_header("🔹 FCFS (First Come First Served)");
     
     // Sắp xếp theo arrival time
     for (int i = 0; i < n - 1; i++) {
@@ -17,7 +16,10 @@ void fcfs(Process proc[], int n) {
     }
     
     int current_time = 0;
-    printf("\nGantt Chart:\n");
+    char gantt[MAX_GANTT_LENGTH] = "";
+    char buffer[50];
+    
+    export_printf("\nGantt Chart:\n");
     
     for (int i = 0; i < n; i++) {
         if (current_time < proc[i].arrival_time) {
@@ -28,9 +30,14 @@ void fcfs(Process proc[], int n) {
         current_time += proc[i].burst_time;
         proc[i].completion_time = current_time;
         
-        printf("| P%d ", proc[i].pid);
+        sprintf(buffer, "| P%d ", proc[i].pid);
+        strcat(gantt, buffer);
     }
-    printf("|\n");
+    strcat(gantt, "|");
     
-    calculate_metrics(proc, n);
+    export_printf("%s\n", gantt);
+    
+    Metrics metrics;
+    calculate_metrics(proc, n, &metrics);
+    export_metrics("FCFS", proc, n, &metrics);
 }

@@ -1,6 +1,6 @@
 #include "../include/scheduler.h"
 
-// Round Robin
+// Round Robin - FIXED queue logic
 void round_robin(Process proc[], int n) {
     export_header("🔹 Round Robin (Time Quantum = 4)");
     
@@ -17,22 +17,36 @@ void round_robin(Process proc[], int n) {
         proc[i].remaining_time = proc[i].burst_time;
     }
     
-    // Thêm process đầu tiên vào queue
-    queue[rear++] = 0;
-    in_queue[0] = 1;
+    // Find first process
+    int first_idx = -1;
+    int min_arrival = INT_MAX;
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time < min_arrival) {
+            min_arrival = proc[i].arrival_time;
+            first_idx = i;
+        }
+    }
     
-    export_printf("\nGantt Chart:\n");
+    if (first_idx != -1) {
+        queue[rear++] = first_idx;
+        in_queue[first_idx] = 1;
+        current_time = proc[first_idx].arrival_time;
+    }
+    
+    export_printf("\n📊 Gantt Chart:\n");
+    export_printf("   ");
     
     while (completed < n) {
         if (front == rear) {
+            // Queue empty - find next process
             int found = 0;
-            // Thêm TẤT CẢ processes đã arrival
             for (int i = 0; i < n; i++) {
                 if (!in_queue[i] && proc[i].remaining_time > 0 &&
                     proc[i].arrival_time <= current_time) {
                     queue[rear++] = i;
                     in_queue[i] = 1;
                     found = 1;
+                    break;
                 }
             }
             if (!found) {
@@ -43,7 +57,7 @@ void round_robin(Process proc[], int n) {
         
         int idx = queue[front++];
         
-        // Lần đầu chạy
+        // First run
         if (!proc[idx].first_run) {
             proc[idx].response_time = current_time - proc[idx].arrival_time;
             proc[idx].first_run = 1;
@@ -56,9 +70,11 @@ void round_robin(Process proc[], int n) {
         current_time += exec_time;
         
         sprintf(buffer, "| P%d ", proc[idx].pid);
-        strcat(gantt, buffer);
+        if (strlen(gantt) + strlen(buffer) < MAX_GANTT_LENGTH - 1) {
+            strcat(gantt, buffer);
+        }
         
-        // Thêm các process mới đến vào queue
+        // Add newly arrived processes to queue
         for (int i = 0; i < n; i++) {
             if (!in_queue[i] && proc[i].remaining_time > 0 &&
                 proc[i].arrival_time <= current_time) {
@@ -67,7 +83,7 @@ void round_robin(Process proc[], int n) {
             }
         }
         
-        // Nếu chưa xong, đưa lại vào queue
+        // If not finished, add back to queue
         if (proc[idx].remaining_time > 0) {
             queue[rear++] = idx;
         } else {

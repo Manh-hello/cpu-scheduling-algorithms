@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <time.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 // Constants
 #define MAX_PROCESSES 10
@@ -40,7 +41,8 @@ typedef struct {
 extern FILE *output_file;
 extern int export_enabled;
 extern char export_filename[256];
-extern struct timeval start_time;
+extern struct timeval simulation_start_time;
+extern int time_scale_ms;  // Milliseconds per time unit
 
 // Function prototypes - Utils
 int read_from_file(Process proc[], int *n, const char *filename);
@@ -56,7 +58,12 @@ void export_header(const char *algorithm_name);
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics);
 void export_comparison_summary();
 
-// Logging functions with real timestamp
+// Simulation timing
+void simulate_time_unit();  // Sleep for one time unit
+double get_elapsed_time();  // Get elapsed real time
+void format_elapsed_time(char *buffer, double elapsed);
+
+// Logging functions with real elapsed time (no sim_time needed)
 void log_event(int sim_time, const char *event_type, int pid, const char *details);
 void log_queue(int sim_time, const char *queue_content);
 

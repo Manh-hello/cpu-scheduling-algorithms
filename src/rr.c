@@ -2,13 +2,15 @@
 
 // Round Robin
 void round_robin(Process proc[], int n) {
-    printf("\n🔹 Round Robin (Time Quantum = %d)\n", TIME_QUANTUM);
+    export_header("🔹 Round Robin (Time Quantum = 4)");
     
     int current_time = 0;
     int completed = 0;
     int queue[MAX_PROCESSES * 10];
     int front = 0, rear = 0;
     int in_queue[MAX_PROCESSES] = {0};
+    char gantt[MAX_GANTT_LENGTH] = "";
+    char buffer[50];
     
     // Reset remaining time
     for (int i = 0; i < n; i++) {
@@ -19,7 +21,7 @@ void round_robin(Process proc[], int n) {
     queue[rear++] = 0;
     in_queue[0] = 1;
     
-    printf("\nGantt Chart:\n");
+    export_printf("\nGantt Chart:\n");
     
     while (completed < n) {
         if (front == rear) {
@@ -52,7 +54,8 @@ void round_robin(Process proc[], int n) {
         proc[idx].remaining_time -= exec_time;
         current_time += exec_time;
         
-        printf("| P%d ", proc[idx].pid);
+        sprintf(buffer, "| P%d ", proc[idx].pid);
+        strcat(gantt, buffer);
         
         // Thêm các process mới đến vào queue
         for (int i = 0; i < n; i++) {
@@ -72,7 +75,11 @@ void round_robin(Process proc[], int n) {
             completed++;
         }
     }
-    printf("|\n");
     
-    calculate_metrics(proc, n);
+    strcat(gantt, "|");
+    export_printf("%s\n", gantt);
+    
+    Metrics metrics;
+    calculate_metrics(proc, n, &metrics);
+    export_metrics("Round Robin", proc, n, &metrics);
 }

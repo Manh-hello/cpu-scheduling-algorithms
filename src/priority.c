@@ -28,6 +28,7 @@ void priority_non_preemptive(Process proc[], int n) {
         if (highest == -1) {
             sprintf(details, "IDLE | CPU waiting for next process");
             log_event(current_time, "CPU", 0, details);
+            simulate_time_unit();
             current_time++;
             continue;
         }
@@ -160,6 +161,7 @@ void priority_preemptive(Process proc[], int n) {
         if (highest == -1) {
             sprintf(details, "IDLE | Waiting for processes to arrive");
             log_event(current_time, "CPU", 0, details);
+            simulate_time_unit();
             current_time++;
             continue;
         }
@@ -192,7 +194,8 @@ void priority_preemptive(Process proc[], int n) {
                     proc[highest].priority, proc[highest].remaining_time);
             log_event(current_time, "RUN", proc[highest].pid, details);
         }
-        
+
+        simulate_time_unit();
         proc[highest].remaining_time--;
         current_time++;
         

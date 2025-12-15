@@ -47,6 +47,7 @@ void priority_non_preemptive(Process proc[], int n) {
         
         // Process running
         for (int t = 1; t <= proc[highest].burst_time; t++) {
+            simulate_time_unit();
             current_time++;
             
             if (t == proc[highest].burst_time) {

@@ -10,20 +10,20 @@
 // Constants
 #define MAX_PROCESSES 10
 #define TIME_QUANTUM 4
-#define MAX_GANTT_LENGTH 2000  // Increased for safety
+#define MAX_GANTT_LENGTH 2000
 
 // Process structure
 typedef struct {
-    int pid;              // Process ID
-    int arrival_time;     // Arrival time
-    int burst_time;       // CPU burst time
-    int remaining_time;   // Remaining time (for preemptive)
-    int priority;         // Priority (lower number = higher priority)
-    int completion_time;  // Completion time
-    int waiting_time;     // Waiting time
-    int turnaround_time;  // Turnaround time
-    int response_time;    // Response time
-    int first_run;        // First run flag
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int remaining_time;
+    int priority;
+    int completion_time;
+    int waiting_time;
+    int turnaround_time;
+    int response_time;
+    int first_run;
 } Process;
 
 // Metrics structure
@@ -53,6 +53,10 @@ void export_printf(const char *format, ...);
 void export_header(const char *algorithm_name);
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics);
 void export_comparison_summary();
+
+// Logging functions (NEW!)
+void log_event(int time, const char *event_type, int pid, const char *details);
+void log_queue(int time, const char *queue_content);
 
 // Algorithm functions
 void fcfs(Process proc[], int n);

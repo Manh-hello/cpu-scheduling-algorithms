@@ -4,136 +4,99 @@ int main() {
     Process proc[MAX_PROCESSES];
     Process proc_copy[MAX_PROCESSES];
     int n = 0;
-    int choice;
-    int data_loaded = 0;
+    char output_filename[256];
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
     
-    printf("\n╔════════════════════════════════════════════╗\n");
-    printf("║  CPU SCHEDULING ALGORITHMS - NETBSD       ║\n");
-    printf("╚════════════════════════════════════════════╝\n");
+    // Tạo header đẹp mắt
+    printf("\n");
+    printf("╔═══════════════════════════════════════════════════════════════╗\n");
+    printf("║                                                               ║\n");
+    printf("║       🖥️  CPU SCHEDULING ALGORITHMS SIMULATOR 🖥️              ║\n");
+    printf("║                                                               ║\n");
+    printf("║            NetBSD - System Programming Project               ║\n");
+    printf("║                    Auto-Run Mode                             ║\n");
+    printf("║                                                               ║\n");
+    printf("╚═══════════════════════════════════════════════════════════════╝\n");
+    printf("\n");
     
-    // Chọn nguồn dữ liệu
-    printf("\nChọn nguồn dữ liệu:\n");
-    printf("1. Sử dụng dữ liệu mẫu (hardcoded)\n");
-    printf("2. Nhập dữ liệu thủ công\n");
-    printf("3. Đọc từ file\n");
-    printf("Lựa chọn: ");
-    scanf("%d", &choice);
+    // Đọc file processes.txt
+    printf("📂 Loading data from: data/processes.txt\n");
+    printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     
-    if (choice == 1) {
-        use_sample_data(proc, &n);
-        data_loaded = 1;
-    } else if (choice == 2) {
-        input_processes(proc, &n);
-        data_loaded = 1;
-    } else if (choice == 3) {
-        char filename[256];
-        printf("\nNhập tên file (VD: ../data/processes.txt): ");
-        scanf("%s", filename);
-        
-        if (read_from_file(proc, &n, filename)) {
-            data_loaded = 1;
-        } else {
-            printf("❌ Không thể đọc file. Thoát chương trình.\n");
-            return 1;
-        }
+    if (!read_from_file(proc, &n, "data/processes.txt")) {
+        printf("\n❌ ERROR: Cannot read data/processes.txt\n");
+        printf("   Please make sure the file exists in data/ directory.\n\n");
+        return 1;
     }
     
-    while (data_loaded) {
-        print_menu();
-        printf("Lựa chọn: ");
-        scanf("%d", &choice);
-        
-        // Copy dữ liệu gốc
-        memcpy(proc_copy, proc, sizeof(Process) * n);
-        
-        switch (choice) {
-            case 1:
-                fcfs(proc_copy, n);
-                break;
-            case 2:
-                sjf(proc_copy, n);
-                break;
-            case 3:
-                srtf(proc_copy, n);
-                break;
-            case 4:
-                round_robin(proc_copy, n);
-                break;
-            case 5:
-                priority_non_preemptive(proc_copy, n);
-                break;
-            case 6:
-                priority_preemptive(proc_copy, n);
-                break;
-            case 7:
-                printf("\n════════════════════════════════════════\n");
-                printf("         SO SÁNH TẤT CẢ THUẬT TOÁN\n");
-                printf("════════════════════════════════════════\n");
-                
-                if (export_enabled) {
-                    fprintf(output_file, "\n\n");
-                    fprintf(output_file, "╔════════════════════════════════════════════════════════════╗\n");
-                    fprintf(output_file, "║              COMPARISON OF ALL ALGORITHMS                 ║\n");
-                    fprintf(output_file, "╚════════════════════════════════════════════════════════════╝\n");
-                }
-                
-                memcpy(proc_copy, proc, sizeof(Process) * n);
-                fcfs(proc_copy, n);
-                
-                memcpy(proc_copy, proc, sizeof(Process) * n);
-                sjf(proc_copy, n);
-                
-                memcpy(proc_copy, proc, sizeof(Process) * n);
-                srtf(proc_copy, n);
-                
-                memcpy(proc_copy, proc, sizeof(Process) * n);
-                round_robin(proc_copy, n);
-                
-                memcpy(proc_copy, proc, sizeof(Process) * n);
-                priority_non_preemptive(proc_copy, n);
-                
-                memcpy(proc_copy, proc, sizeof(Process) * n);
-                priority_preemptive(proc_copy, n);
-                
-                if (export_enabled) {
-                    fprintf(output_file, "\n");
-                    fprintf(output_file, "═══════════════════════════════════════════════════════════════\n");
-                    fprintf(output_file, "                    END OF COMPARISON\n");
-                    fprintf(output_file, "═══════════════════════════════════════════════════════════════\n");
-                }
-                break;
-                
-            case 8: {
-                if (export_enabled) {
-                    disable_export();
-                } else {
-                    char export_filename[256];
-                    printf("\nNhập tên file export (VD: results/output.txt): ");
-                    scanf("%s", export_filename);
-                    enable_export(export_filename);
-                }
-                break;
-            }
-                
-            case 0:
-                if (export_enabled) {
-                    disable_export();
-                }
-                printf("\n👋 Cảm ơn đã sử dụng chương trình!\n\n");
-                return 0;
-                
-            default:
-                printf("\n❌ Lựa chọn không hợp lệ!\n");
-        }
-        
-        printf("\n▶ Nhấn Enter để tiếp tục...");
-        getchar();
-        getchar();
-    }
+    printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    printf("✓ Data loaded successfully! %d processes ready.\n\n", n);
     
-    if (export_enabled) {
-        disable_export();
-    }
+    // Tạo tên file output với timestamp
+    sprintf(output_filename, "results/CPU_Scheduling_Report_%04d%02d%02d_%02d%02d%02d.txt",
+            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+            t->tm_hour, t->tm_min, t->tm_sec);
+    
+    printf("📝 Output will be saved to:\n");
+    printf("   %s\n\n", output_filename);
+    
+    // Enable export
+    enable_export(output_filename);
+    
+    printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    printf("🚀 Starting simulation with all 6 algorithms...\n");
+    printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+    
+    // Hiển thị input data
+    print_input_table(proc, n);
+    
+    // Chạy từng thuật toán
+    printf("\n[1/6] Running FCFS...\n");
+    memcpy(proc_copy, proc, sizeof(Process) * n);
+    fcfs(proc_copy, n);
+    printf("      ✓ FCFS completed\n");
+    
+    printf("\n[2/6] Running SJF...\n");
+    memcpy(proc_copy, proc, sizeof(Process) * n);
+    sjf(proc_copy, n);
+    printf("      ✓ SJF completed\n");
+    
+    printf("\n[3/6] Running SRTF...\n");
+    memcpy(proc_copy, proc, sizeof(Process) * n);
+    srtf(proc_copy, n);
+    printf("      ✓ SRTF completed\n");
+    
+    printf("\n[4/6] Running Round Robin...\n");
+    memcpy(proc_copy, proc, sizeof(Process) * n);
+    round_robin(proc_copy, n);
+    printf("      ✓ Round Robin completed\n");
+    
+    printf("\n[5/6] Running Priority (Non-preemptive)...\n");
+    memcpy(proc_copy, proc, sizeof(Process) * n);
+    priority_non_preemptive(proc_copy, n);
+    printf("      ✓ Priority (Non-preemptive) completed\n");
+    
+    printf("\n[6/6] Running Priority (Preemptive)...\n");
+    memcpy(proc_copy, proc, sizeof(Process) * n);
+    priority_preemptive(proc_copy, n);
+    printf("      ✓ Priority (Preemptive) completed\n");
+    
+    // Export comparison summary
+    export_comparison_summary();
+    
+    // Đóng export
+    disable_export();
+    
+    printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    printf("✅ ALL SIMULATIONS COMPLETED SUCCESSFULLY!\n");
+    printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    printf("\n📊 Results saved to:\n");
+    printf("   %s\n", output_filename);
+    printf("\n💡 View results with:\n");
+    printf("   cat %s\n", output_filename);
+    printf("   less %s\n", output_filename);
+    printf("\n🎉 Thank you for using CPU Scheduling Simulator!\n\n");
     
     return 0;
 }

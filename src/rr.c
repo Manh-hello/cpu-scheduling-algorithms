@@ -25,16 +25,17 @@ void round_robin(Process proc[], int n) {
     
     while (completed < n) {
         if (front == rear) {
-            // Queue rỗng, tìm process tiếp theo
+            int found = 0;
+            // Thêm TẤT CẢ processes đã arrival
             for (int i = 0; i < n; i++) {
                 if (!in_queue[i] && proc[i].remaining_time > 0 &&
                     proc[i].arrival_time <= current_time) {
                     queue[rear++] = i;
                     in_queue[i] = 1;
-                    break;
+                    found = 1;
                 }
             }
-            if (front == rear) {
+            if (!found) {
                 current_time++;
                 continue;
             }

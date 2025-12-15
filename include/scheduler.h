@@ -6,6 +6,7 @@
 #include <string.h>
 #include <limits.h>
 #include <time.h>
+#include <sys/time.h>
 
 // Constants
 #define MAX_PROCESSES 10
@@ -39,6 +40,7 @@ typedef struct {
 extern FILE *output_file;
 extern int export_enabled;
 extern char export_filename[256];
+extern struct timeval start_time;
 
 // Function prototypes - Utils
 int read_from_file(Process proc[], int *n, const char *filename);
@@ -54,9 +56,9 @@ void export_header(const char *algorithm_name);
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics);
 void export_comparison_summary();
 
-// Logging functions (NEW!)
-void log_event(int time, const char *event_type, int pid, const char *details);
-void log_queue(int time, const char *queue_content);
+// Logging functions with real timestamp
+void log_event(int sim_time, const char *event_type, int pid, const char *details);
+void log_queue(int sim_time, const char *queue_content);
 
 // Algorithm functions
 void fcfs(Process proc[], int n);

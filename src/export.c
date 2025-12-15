@@ -1,9 +1,11 @@
 #include "../include/scheduler.h"
 #include <stdarg.h>
+#include <sys/time.h>
 
 FILE *output_file = NULL;
 int export_enabled = 0;
 char export_filename[256] = "";
+struct timeval start_time;  // Store simulation start time
 
 typedef struct {
     char name[50];
@@ -29,6 +31,9 @@ void enable_export(const char *filename) {
     strcpy(export_filename, filename);
     result_count = 0;
     
+    // Get start time for simulation
+    gettimeofday(&start_time, NULL);
+    
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     
@@ -52,10 +57,17 @@ void enable_export(const char *filename) {
 
 void disable_export() {
     if (output_file != NULL) {
+        // Calculate total elapsed time
+        struct timeval end_time;
+        gettimeofday(&end_time, NULL);
+        long elapsed_ms = (end_time.tv_sec - start_time.tv_sec) * 1000 +
+                         (end_time.tv_usec - start_time.tv_usec) / 1000;
+        
         fprintf(output_file, "\n\n");
         fprintf(output_file, "════════════════════════════════ SIMULATION END ═══════════════════════════════\n");
         fprintf(output_file, "\n");
         fprintf(output_file, "[✓] All algorithms completed successfully\n");
+        fprintf(output_file, "[✓] Total execution time: %ld ms\n", elapsed_ms);
         fprintf(output_file, "[✓] Report saved to: %s\n", export_filename);
         fprintf(output_file, "\n");
         fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
@@ -76,6 +88,8 @@ void disable_export() {
             printf("🥇 Best Avg Response  : %s (%.2f)\n", results[best_rt].name, results[best_rt].metrics.avg_response);
         }
         printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        printf("⏱️  Total simulation time: %ld ms\n", elapsed_ms);
+        printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     }
     export_enabled = 0;
 }
@@ -95,27 +109,41 @@ void export_printf(const char *format, ...) {
 }
 
 void export_header(const char *algorithm_name) {
+    // Get current real time
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");
     export_printf("\n");
     export_printf("                         %s\n", algorithm_name);
+    export_printf("                    Started at: %02d:%02d:%02d\n", t->tm_hour, t->tm_min, t->tm_sec);
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");
     export_printf("\n");
 }
 
-// Log chi tiết từng event - VỪA console VỪA file
-void log_event(int time, const char *event_type, int pid, const char *details) {
+// Log chi tiết từng event - với REAL timestamp
+void log_event(int sim_time, const char *event_type, int pid, const char *details) {
+    // Get current real time
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    
     if (pid > 0) {
-        export_printf("[Time:%3d] [%s] P%-2d | %s\n", time, event_type, pid, details);
+        export_printf("[%02d:%02d:%02d][SimTime:%3d][%s] P%-2d | %s\n", 
+                     t->tm_hour, t->tm_min, t->tm_sec, sim_time, event_type, pid, details);
     } else {
-        export_printf("[Time:%3d] [%s]     | %s\n", time, event_type, details);
+        export_printf("[%02d:%02d:%02d][SimTime:%3d][%s]     | %s\n",
+                     t->tm_hour, t->tm_min, t->tm_sec, sim_time, event_type, details);
     }
 }
 
-// Log queue status - VỪA console VỪA file
-void log_queue(int time, const char *queue_content) {
-    export_printf("[Time:%3d] [Queue] %s\n", time, queue_content);
+// Log queue status - với REAL timestamp
+void log_queue(int sim_time, const char *queue_content) {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    export_printf("[%02d:%02d:%02d][SimTime:%3d][Queue] %s\n",
+                 t->tm_hour, t->tm_min, t->tm_sec, sim_time, queue_content);
 }
 
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics) {

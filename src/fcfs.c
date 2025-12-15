@@ -23,6 +23,8 @@ void fcfs(Process proc[], int n) {
     
     for (int i = 0; i < n; i++) {
         if (current_time < proc[i].arrival_time) {
+            sprintf(buffer, "| IDLE ");
+            strcat(gantt, buffer);
             current_time = proc[i].arrival_time;
         }
         

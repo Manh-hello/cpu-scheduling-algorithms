@@ -6,6 +6,11 @@ int export_enabled = 0;
 
 // Mở file để export
 void enable_export(const char *filename) {
+    if (output_file != NULL) {
+        fclose(output_file);
+        output_file = NULL;
+    }
+
     output_file = fopen(filename, "w");
     if (output_file == NULL) {
         printf("❌ Không thể tạo file export: %s\n", filename);

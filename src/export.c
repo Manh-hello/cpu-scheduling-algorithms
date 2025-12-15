@@ -61,6 +61,21 @@ void disable_export() {
         fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
         fclose(output_file);
         output_file = NULL;
+        printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        printf("📊 COMPARISON SUMMARY\n");
+        printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        if (result_count > 0) {
+            int best_tat = 0, best_wt = 0, best_rt = 0;
+            for (int i = 1; i < result_count; i++) {
+                if (results[i].metrics.avg_turnaround < results[best_tat].metrics.avg_turnaround) best_tat = i;
+                if (results[i].metrics.avg_waiting < results[best_wt].metrics.avg_waiting) best_wt = i;
+                if (results[i].metrics.avg_response < results[best_rt].metrics.avg_response) best_rt = i;
+            }
+            printf("🥇 Best Avg Turnaround: %s (%.2f)\n", results[best_tat].name, results[best_tat].metrics.avg_turnaround);
+            printf("🥇 Best Avg Waiting   : %s (%.2f)\n", results[best_wt].name, results[best_wt].metrics.avg_waiting);
+            printf("🥇 Best Avg Response  : %s (%.2f)\n", results[best_rt].name, results[best_rt].metrics.avg_response);
+        }
+        printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     }
     export_enabled = 0;
 }
@@ -89,25 +104,24 @@ void export_header(const char *algorithm_name) {
     export_printf("\n");
 }
 
-// Log chi tiết từng event
+// Log chi tiết từng event - VỪA console VỪA file
 void log_event(int time, const char *event_type, int pid, const char *details) {
-    char timestamp[20];
-    struct tm *t = localtime(&(time_t){time});
-    
-    if (export_enabled && output_file != NULL) {
-        fprintf(output_file, "[Time:%3d] [%s] P%-2d | %-50s\n", 
-                time, event_type, pid, details);
+    if (pid > 0) {
+        export_printf("[Time:%3d] [%s] P%-2d | %s\n", time, event_type, pid, details);
+    } else {
+        export_printf("[Time:%3d] [%s]     | %s\n", time, event_type, details);
     }
 }
 
-// Log queue status
+// Log queue status - VỪA console VỪA file
 void log_queue(int time, const char *queue_content) {
-    if (export_enabled && output_file != NULL) {
-        fprintf(output_file, "[Time:%3d] [Queue] %s\n", time, queue_content);
-    }
+    export_printf("[Time:%3d] [Queue] %s\n", time, queue_content);
 }
 
 void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics) {
+    (void)proc;  // Unused parameter
+    (void)n;     // Unused parameter
+    
     if (result_count < 6) {
         strcpy(results[result_count].name, algorithm_name);
         results[result_count].metrics = *metrics;

@@ -70,6 +70,13 @@ int main() {
                 printf("         SO SÁNH TẤT CẢ THUẬT TOÁN\n");
                 printf("════════════════════════════════════════\n");
                 
+                if (export_enabled) {
+                    fprintf(output_file, "\n\n");
+                    fprintf(output_file, "╔════════════════════════════════════════════════════════════╗\n");
+                    fprintf(output_file, "║              COMPARISON OF ALL ALGORITHMS                 ║\n");
+                    fprintf(output_file, "╚════════════════════════════════════════════════════════════╝\n");
+                }
+                
                 memcpy(proc_copy, proc, sizeof(Process) * n);
                 fcfs(proc_copy, n);
                 
@@ -87,10 +94,34 @@ int main() {
                 
                 memcpy(proc_copy, proc, sizeof(Process) * n);
                 priority_preemptive(proc_copy, n);
+                
+                if (export_enabled) {
+                    fprintf(output_file, "\n");
+                    fprintf(output_file, "═══════════════════════════════════════════════════════════════\n");
+                    fprintf(output_file, "                    END OF COMPARISON\n");
+                    fprintf(output_file, "═══════════════════════════════════════════════════════════════\n");
+                }
                 break;
+                
+            case 8: {
+                if (export_enabled) {
+                    disable_export();
+                } else {
+                    char export_filename[256];
+                    printf("\nNhập tên file export (VD: results/output.txt): ");
+                    scanf("%s", export_filename);
+                    enable_export(export_filename);
+                }
+                break;
+            }
+                
             case 0:
+                if (export_enabled) {
+                    disable_export();
+                }
                 printf("\n👋 Cảm ơn đã sử dụng chương trình!\n\n");
                 return 0;
+                
             default:
                 printf("\n❌ Lựa chọn không hợp lệ!\n");
         }
@@ -98,6 +129,10 @@ int main() {
         printf("\n▶ Nhấn Enter để tiếp tục...");
         getchar();
         getchar();
+    }
+    
+    if (export_enabled) {
+        disable_export();
     }
     
     return 0;

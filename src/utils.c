@@ -1,6 +1,5 @@
 #include "../include/scheduler.h"
 
-// Đọc dữ liệu từ file
 int read_from_file(Process proc[], int *n, const char *filename) {
     FILE *file = fopen(filename, "r");
     
@@ -34,14 +33,13 @@ int read_from_file(Process proc[], int *n, const char *filename) {
             return 0;
         }
         
-        // Validate data
         if (bt <= 0) {
-            printf("❌ Invalid burst time at P%d: %d (must be > 0)\n", pid, bt);
+            printf("❌ Invalid burst time at P%d: %d\n", pid, bt);
             fclose(file);
             return 0;
         }
         if (at < 0) {
-            printf("❌ Invalid arrival time at P%d: %d (must be >= 0)\n", pid, at);
+            printf("❌ Invalid arrival time at P%d: %d\n", pid, at);
             fclose(file);
             return 0;
         }
@@ -60,36 +58,32 @@ int read_from_file(Process proc[], int *n, const char *filename) {
     return 1;
 }
 
-// In bảng input data
 void print_input_table(Process proc[], int n) {
     export_printf("\n");
-    export_printf("╔═══════════════════════════════════════════════════════════════╗\n");
-    export_printf("║                     INPUT PROCESS DATA                        ║\n");
-    export_printf("╚═══════════════════════════════════════════════════════════════╝\n");
-    export_printf("\n");
-    export_printf("┌─────────┬─────────────────┬─────────────┬──────────────┐\n");
-    export_printf("│ Process │  Arrival Time   │ Burst Time  │   Priority   │\n");
-    export_printf("├─────────┼─────────────────┼─────────────┼──────────────┤\n");
+    export_printf("+----------------------- INPUT PROCESS DATA ------------------------+\n");
+    export_printf("| PID | Arrival Time | Burst Time | Priority | State           |\n");
+    export_printf("+-----+--------------+------------+----------+-----------------+\n");
     
     for (int i = 0; i < n; i++) {
-        export_printf("│   P%-4d │       %-3d       │      %-3d    │      %-3d     │\n",
+        export_printf("| P%-3d|      %-3d     |     %-3d    |    %-2d    | READY           |\n",
                proc[i].pid,
                proc[i].arrival_time,
                proc[i].burst_time,
                proc[i].priority);
     }
     
-    export_printf("└─────────┴─────────────────┴─────────────┴──────────────┘\n");
+    export_printf("+-----+--------------+------------+----------+-----------------+\n");
+    export_printf("\n");
 }
 
-// In bảng kết quả
 void print_table(Process proc[], int n) {
-    export_printf("\n┌─────────┬─────┬─────┬─────┬──────┬──────┬──────┐\n");
-    export_printf("│ Process │ AT  │ BT  │ CT  │ TAT  │  WT  │  RT  │\n");
-    export_printf("├─────────┼─────┼─────┼─────┼──────┼──────┼──────┤\n");
+    export_printf("\n");
+    export_printf("+-----------------------------------------------------------------------+\n");
+    export_printf("| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |\n");
+    export_printf("+-----+-----+-----+-----+-----+-----+-----+-------------------+\n");
     
     for (int i = 0; i < n; i++) {
-        export_printf("│  P%-5d │ %-3d │ %-3d │ %-3d │ %-4d │ %-4d │ %-4d │\n",
+        export_printf("| P%-3d| %-4d| %-4d| %-4d| %-4d| %-4d| %-4d| COMPLETED         |\n",
                proc[i].pid,
                proc[i].arrival_time,
                proc[i].burst_time,
@@ -99,16 +93,15 @@ void print_table(Process proc[], int n) {
                proc[i].response_time);
     }
     
-    export_printf("└─────────┴─────┴─────┴─────┴──────┴──────┴──────┘\n");
+    export_printf("+-----+-----+-----+-----+-----+-----+-----+-------------------+\n");
 }
 
-// Tính toán metrics - FIXED: Tính trước khi in
 void calculate_metrics(Process proc[], int n, Metrics *metrics) {
     float total_wt = 0, total_tat = 0, total_rt = 0;
     int max_completion = 0;
     int total_burst = 0;
     
-    // TÍNH TOÁN TRƯỚC
+    // Calculate first
     for (int i = 0; i < n; i++) {
         proc[i].turnaround_time = proc[i].completion_time - proc[i].arrival_time;
         proc[i].waiting_time = proc[i].turnaround_time - proc[i].burst_time;
@@ -123,18 +116,19 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
         }
     }
     
-    // IN BẢNG SAU KHI TÍNH
+    // Print table
     print_table(proc, n);
     
-    // Tính metrics
+    // Calculate metrics
     metrics->avg_turnaround = total_tat / n;
     metrics->avg_waiting = total_wt / n;
     metrics->avg_response = total_rt / n;
     metrics->total_time = max_completion;
     metrics->cpu_utilization = (float)total_burst / max_completion * 100;
     
-    // In kết quả
-    export_printf("\n╭─────────────────────────────────────────────────────╮\n");
+    // Print metrics
+    export_printf("\n");
+    export_printf("╭─────────────────────────────────────────────────────╮\n");
     export_printf("│              📊 PERFORMANCE METRICS                 │\n");
     export_printf("├─────────────────────────────────────────────────────┤\n");
     export_printf("│  Total Execution Time    : %-6d time units       │\n", metrics->total_time);

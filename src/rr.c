@@ -1,18 +1,16 @@
 #include "../include/scheduler.h"
 
-// Round Robin - FIXED queue logic
 void round_robin(Process proc[], int n) {
-    export_header("🔹 Round Robin (Time Quantum = 4)");
+    export_header("ALGORITHM: Round Robin (Time Quantum = 4)");
     
     int current_time = 0;
     int completed = 0;
     int queue[MAX_PROCESSES * 10];
     int front = 0, rear = 0;
     int in_queue[MAX_PROCESSES] = {0};
-    char gantt[MAX_GANTT_LENGTH] = "";
-    char buffer[50];
+    int context_switches = 0;
+    char details[150];
     
-    // Reset remaining time
     for (int i = 0; i < n; i++) {
         proc[i].remaining_time = proc[i].burst_time;
     }
@@ -33,12 +31,16 @@ void round_robin(Process proc[], int n) {
         current_time = proc[first_idx].arrival_time;
     }
     
-    export_printf("\n📊 Gantt Chart:\n");
-    export_printf("   ");
+    export_printf("========================== ACTIVITY LOG ====================================\n\n");
+    
+    sprintf(details, "ARRIVED | AT=%d, BT=%d | Added to ready queue", 
+            proc[first_idx].arrival_time, proc[first_idx].burst_time);
+    log_event(current_time, "ARR", proc[first_idx].pid, details);
+    
+    int prev_proc = -1;
     
     while (completed < n) {
         if (front == rear) {
-            // Queue empty - find next process
             int found = 0;
             for (int i = 0; i < n; i++) {
                 if (!in_queue[i] && proc[i].remaining_time > 0 &&
@@ -46,10 +48,15 @@ void round_robin(Process proc[], int n) {
                     queue[rear++] = i;
                     in_queue[i] = 1;
                     found = 1;
+                    
+                    sprintf(details, "ARRIVED | AT=%d, BT=%d | Added to ready queue",
+                            proc[i].arrival_time, proc[i].burst_time);
+                    log_event(current_time, "ARR", proc[i].pid, details);
                     break;
                 }
             }
             if (!found) {
+                log_event(current_time, "CPU", 0, "IDLE | Waiting for processes");
                 current_time++;
                 continue;
             }
@@ -57,24 +64,122 @@ void round_robin(Process proc[], int n) {
         
         int idx = queue[front++];
         
+        // Context switch
+        if (prev_proc != idx && prev_proc != -1) {
+            context_switches++;
+            sprintf(details, "CONTEXT SWITCH #%d | From P%d to P%d", 
+                    context_switches, prev_proc + 1, proc[idx].pid);
+            log_event(current_time, "CTX", proc[idx].pid, details);
+        }
+        
         // First run
         if (!proc[idx].first_run) {
             proc[idx].response_time = current_time - proc[idx].arrival_time;
+            sprintf(details, "START   | Response Time=%d | First time running",
+                    proc[idx].response_time);
+            log_event(current_time, "RUN", proc[idx].pid, details);
             proc[idx].first_run = 1;
+        } else {
+            sprintf(details, "RESUME  | Remaining Time=%d | Continuing execution",
+                    proc[idx].remaining_time);
+            log_event(current_time, "RUN", proc[idx].pid, details);
         }
         
         int exec_time = (proc[idx].remaining_time > TIME_QUANTUM) ? 
                         TIME_QUANTUM : proc[idx].remaining_time;
         
+        // Execute
+        for (int t = 0; t < exec_time; t++) {
+            current_time++;
+            proc[idx].remaining_time--;
+            
+            // Check for new arrivals
+            for (int i = 0; i < n; i++) {
+                if (!in_queue[i] && proc[i].remaining_time > 0 &&
+                    proc[i].arrival_time == current_time) {
+                    queue[rear++] = i;
+                    in_queue[i] = 1;
+                    sprintf(details, "ARRIVED | AT=%d, BT=%d | Added to ready queue",
+                            proc[i].arrival_time, proc[i].burst_time);
+                    log_event(current_time, "ARR", proc[i].pid, details);
+                }
+            }
+        }
+        
+        // Show queue status
+        char queue_str[200] = "Ready Queue: [";
+        for (int i = front; i < rear; i++) {
+            char temp[10];
+            sprintf(temp, "P%d ", proc[queue[i]].pid);
+            strcat(queue_str, temp);
+        }
+        strcat(queue_str, "]");
+        log_queue(current_time, queue_str);
+        
+        if (proc[idx].remaining_time > 0) {
+            sprintf(details, "PREEMPT | Remaining Time=%d | Time quantum expired",
+                    proc[idx].remaining_time);
+            log_event(current_time, "PRE", proc[idx].pid, details);
+            queue[rear++] = idx;
+        } else {
+            proc[idx].completion_time = current_time;
+            in_queue[idx] = 0;
+            completed++;
+            sprintf(details, "COMPLETE | CT=%d | Total TAT=%d",
+                    proc[idx].completion_time,
+                    proc[idx].completion_time - proc[idx].arrival_time);
+            log_event(current_time, "FIN", proc[idx].pid, details);
+        }
+        
+        prev_proc = idx;
+    }
+    
+    export_printf("\n[✓] Total Context Switches: %d\n", context_switches);
+    export_printf("[✓] All processes completed\n\n");
+    
+    export_printf("============================= GANTT CHART ==================================\n\n");
+    export_printf("Timeline: ");
+    
+    // Rebuild gantt for display
+    current_time = 0;
+    for (int i = 0; i < n; i++) {
+        proc[i].remaining_time = proc[i].burst_time;
+    }
+    front = rear = 0;
+    for (int i = 0; i < MAX_PROCESSES; i++) in_queue[i] = 0;
+    completed = 0;
+    
+    if (first_idx != -1) {
+        queue[rear++] = first_idx;
+        in_queue[first_idx] = 1;
+        current_time = proc[first_idx].arrival_time;
+    }
+    
+    while (completed < n) {
+        if (front == rear) {
+            for (int i = 0; i < n; i++) {
+                if (!in_queue[i] && proc[i].remaining_time > 0 &&
+                    proc[i].arrival_time <= current_time) {
+                    queue[rear++] = i;
+                    in_queue[i] = 1;
+                    break;
+                }
+            }
+            if (front == rear) {
+                current_time++;
+                continue;
+            }
+        }
+        
+        int idx = queue[front++];
+        int exec_time = (proc[idx].remaining_time > TIME_QUANTUM) ? 
+                        TIME_QUANTUM : proc[idx].remaining_time;
+        
+        export_printf("| P%d ", proc[idx].pid);
+        
         proc[idx].remaining_time -= exec_time;
         current_time += exec_time;
         
-        sprintf(buffer, "| P%d ", proc[idx].pid);
-        if (strlen(gantt) + strlen(buffer) < MAX_GANTT_LENGTH - 1) {
-            strcat(gantt, buffer);
-        }
-        
-        // Add newly arrived processes to queue
         for (int i = 0; i < n; i++) {
             if (!in_queue[i] && proc[i].remaining_time > 0 &&
                 proc[i].arrival_time <= current_time) {
@@ -83,18 +188,19 @@ void round_robin(Process proc[], int n) {
             }
         }
         
-        // If not finished, add back to queue
         if (proc[idx].remaining_time > 0) {
             queue[rear++] = idx;
         } else {
-            proc[idx].completion_time = current_time;
             in_queue[idx] = 0;
             completed++;
         }
     }
+    export_printf("|\n\n");
     
-    strcat(gantt, "|");
-    export_printf("%s\n", gantt);
+    // Restore original values for metrics calculation
+    for (int i = 0; i < n; i++) {
+        proc[i].remaining_time = proc[i].burst_time;
+    }
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);

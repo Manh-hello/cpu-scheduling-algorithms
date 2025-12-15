@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 
 // Constants
 #define MAX_PROCESSES 10
 #define TIME_QUANTUM 4
+#define MAX_GANTT_LENGTH 1000
 
 // Process structure
 typedef struct {
@@ -24,12 +26,40 @@ typedef struct {
     int first_run;        // Đánh dấu lần đầu chạy
 } Process;
 
+// Gantt chart structure
+typedef struct {
+    char chart[MAX_GANTT_LENGTH];
+    int length;
+} GanttChart;
+
+// Metrics structure
+typedef struct {
+    float avg_turnaround;
+    float avg_waiting;
+    float avg_response;
+    float cpu_utilization;
+    int total_time;
+} Metrics;
+
+// Global variable for output file
+extern FILE *output_file;
+extern int export_enabled;
+
 // Function prototypes - Utils
 int read_from_file(Process proc[], int *n, const char *filename);
 void input_processes(Process proc[], int *n);
 void use_sample_data(Process proc[], int *n);
-void calculate_metrics(Process proc[], int n);
+void calculate_metrics(Process proc[], int n, Metrics *metrics);
 void print_menu();
+void print_table(Process proc[], int n);
+
+// Export functions
+void enable_export(const char *filename);
+void disable_export();
+void export_printf(const char *format, ...);
+void export_header(const char *algorithm_name);
+void export_metrics(const char *algorithm_name, Process proc[], int n, Metrics *metrics);
+void export_gantt_chart(const char *chart);
 
 // Function prototypes - Algorithms
 void fcfs(Process proc[], int n);

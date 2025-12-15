@@ -2,18 +2,20 @@
 
 // SRTF - Shortest Remaining Time First
 void srtf(Process proc[], int n) {
-    printf("\n🔹 SRTF (Shortest Remaining Time First)\n");
+    export_header("🔹 SRTF (Shortest Remaining Time First)");
     
     int current_time = 0;
     int completed = 0;
     int prev_proc = -1;
+    char gantt[MAX_GANTT_LENGTH] = "";
+    char buffer[50];
     
     // Reset remaining time
     for (int i = 0; i < n; i++) {
         proc[i].remaining_time = proc[i].burst_time;
     }
     
-    printf("\nGantt Chart:\n");
+    export_printf("\nGantt Chart:\n");
     
     while (completed < n) {
         int shortest = -1;
@@ -42,8 +44,11 @@ void srtf(Process proc[], int n) {
         
         // In Gantt chart khi đổi process
         if (prev_proc != shortest) {
-            if (prev_proc != -1) printf("| ");
-            printf("P%d ", proc[shortest].pid);
+            if (prev_proc != -1) {
+                strcat(gantt, "| ");
+            }
+            sprintf(buffer, "P%d ", proc[shortest].pid);
+            strcat(gantt, buffer);
         }
         
         proc[shortest].remaining_time--;
@@ -55,7 +60,11 @@ void srtf(Process proc[], int n) {
             completed++;
         }
     }
-    printf("|\n");
     
-    calculate_metrics(proc, n);
+    strcat(gantt, "|");
+    export_printf("%s\n", gantt);
+    
+    Metrics metrics;
+    calculate_metrics(proc, n, &metrics);
+    export_metrics("SRTF", proc, n, &metrics);
 }

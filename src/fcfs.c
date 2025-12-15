@@ -4,7 +4,7 @@
 void fcfs(Process proc[], int n) {
     export_header("🔹 FCFS (First Come First Served)");
     
-    // Sắp xếp theo arrival time
+    // Sort by arrival time
     for (int i = 0; i < n - 1; i++) {
         for (int j = i + 1; j < n; j++) {
             if (proc[i].arrival_time > proc[j].arrival_time) {
@@ -19,12 +19,16 @@ void fcfs(Process proc[], int n) {
     char gantt[MAX_GANTT_LENGTH] = "";
     char buffer[50];
     
-    export_printf("\nGantt Chart:\n");
+    export_printf("\n📊 Gantt Chart:\n");
+    export_printf("   ");
     
     for (int i = 0; i < n; i++) {
+        // Handle idle time
         if (current_time < proc[i].arrival_time) {
             sprintf(buffer, "| IDLE ");
-            strcat(gantt, buffer);
+            if (strlen(gantt) + strlen(buffer) < MAX_GANTT_LENGTH - 1) {
+                strcat(gantt, buffer);
+            }
             current_time = proc[i].arrival_time;
         }
         
@@ -33,7 +37,9 @@ void fcfs(Process proc[], int n) {
         proc[i].completion_time = current_time;
         
         sprintf(buffer, "| P%d ", proc[i].pid);
-        strcat(gantt, buffer);
+        if (strlen(gantt) + strlen(buffer) < MAX_GANTT_LENGTH - 1) {
+            strcat(gantt, buffer);
+        }
     }
     strcat(gantt, "|");
     

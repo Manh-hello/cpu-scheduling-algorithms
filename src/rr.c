@@ -61,6 +61,7 @@ void round_robin(Process proc[], int n) {
             if (!found) {
                 sprintf(details, "IDLE | Waiting for processes to arrive");
                 log_event(current_time, "CPU", 0, details);
+                simulate_time_unit();
                 current_time++;
                 continue;
             }
@@ -96,6 +97,7 @@ void round_robin(Process proc[], int n) {
         
         // Execute and check for arrivals
         for (int t = 0; t < exec_time; t++) {
+            simulate_time_unit();
             current_time++;
             proc[idx].remaining_time--;
             

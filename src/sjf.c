@@ -2,13 +2,15 @@
 
 // SJF - Shortest Job First (Non-preemptive)
 void sjf(Process proc[], int n) {
-    printf("\n🔹 SJF (Shortest Job First - Non-preemptive)\n");
+    export_header("🔹 SJF (Shortest Job First - Non-preemptive)");
     
     int current_time = 0;
     int completed = 0;
     int is_completed[MAX_PROCESSES] = {0};
+    char gantt[MAX_GANTT_LENGTH] = "";
+    char buffer[50];
     
-    printf("\nGantt Chart:\n");
+    export_printf("\nGantt Chart:\n");
     
     while (completed < n) {
         int shortest = -1;
@@ -35,9 +37,14 @@ void sjf(Process proc[], int n) {
         is_completed[shortest] = 1;
         completed++;
         
-        printf("| P%d ", proc[shortest].pid);
+        sprintf(buffer, "| P%d ", proc[shortest].pid);
+        strcat(gantt, buffer);
     }
-    printf("|\n");
+    strcat(gantt, "|");
     
-    calculate_metrics(proc, n);
+    export_printf("%s\n", gantt);
+    
+    Metrics metrics;
+    calculate_metrics(proc, n, &metrics);
+    export_metrics("SJF", proc, n, &metrics);
 }

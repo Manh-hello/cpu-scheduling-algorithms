@@ -6,7 +6,7 @@
 FILE *output_file = NULL;
 int export_enabled = 0;
 char export_filename[256] = "";
-struct timeval simulation_start_time;  // Start of simulation
+struct timeval simulation_start_time;
 int time_scale_ms = 100;  // Each simulation time unit = 100ms real time
 
 typedef struct {
@@ -17,26 +17,25 @@ typedef struct {
 AlgorithmResult results[6];
 int result_count = 0;
 
-// Get elapsed time since simulation start in seconds
+// Get current system time as HH:MM:SS
+void get_current_time_str(char *buffer) {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    sprintf(buffer, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
+}
+
+// Sleep to simulate time passing
+void simulate_time_unit() {
+    usleep(time_scale_ms * 1000);
+}
+
+// Get elapsed time since simulation start
 double get_elapsed_time() {
     struct timeval now;
     gettimeofday(&now, NULL);
     double elapsed = (now.tv_sec - simulation_start_time.tv_sec) +
                     (now.tv_usec - simulation_start_time.tv_usec) / 1000000.0;
     return elapsed;
-}
-
-// Format elapsed time as HH:MM:SS.mmm
-void format_elapsed_time(char *buffer, double elapsed) {
-    int hours = (int)(elapsed / 3600);
-    int minutes = (int)((elapsed - hours * 3600) / 60);
-    double seconds = elapsed - hours * 3600 - minutes * 60;
-    sprintf(buffer, "%02d:%02d:%06.3f", hours, minutes, seconds);
-}
-
-// Sleep to simulate time passing
-void simulate_time_unit() {
-    usleep(time_scale_ms * 1000);  // Convert ms to microseconds
 }
 
 void enable_export(const char *filename) {
@@ -55,7 +54,6 @@ void enable_export(const char *filename) {
     strcpy(export_filename, filename);
     result_count = 0;
     
-    // Initialize simulation start time
     gettimeofday(&simulation_start_time, NULL);
     
     time_t now = time(NULL);
@@ -133,29 +131,29 @@ void export_printf(const char *format, ...) {
         va_end(args2);
     }
     
-    fflush(stdout);  // Force immediate display
+    fflush(stdout);
 }
 
 void export_header(const char *algorithm_name) {
-    char time_str[32];
-    format_elapsed_time(time_str, get_elapsed_time());
+    char time_str[16];
+    get_current_time_str(time_str);
     
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");
     export_printf("\n");
     export_printf("                         %s\n", algorithm_name);
-    export_printf("                    Started at: %s (elapsed)\n", time_str);
+    export_printf("                    Started at: [%s]\n", time_str);
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");
     export_printf("\n");
 }
 
-// Log event with real elapsed time
+// ✅ SỬA: Log event với real system time [HH:MM:SS]
 void log_event(int sim_time, const char *event_type, int pid, const char *details) {
-    (void)sim_time;  // Not used anymore, we use real elapsed time
+    (void)sim_time;  // Không dùng simulation time nữa
     
-    char time_str[32];
-    format_elapsed_time(time_str, get_elapsed_time());
+    char time_str[16];
+    get_current_time_str(time_str);  // Lấy giờ thật HH:MM:SS
     
     if (pid > 0) {
         export_printf("[%s] [%s] P%-2d | %s\n", 
@@ -166,12 +164,12 @@ void log_event(int sim_time, const char *event_type, int pid, const char *detail
     }
 }
 
-// Log queue status with real elapsed time
+// ✅ SỬA: Log queue với real system time [HH:MM:SS]
 void log_queue(int sim_time, const char *queue_content) {
-    (void)sim_time;  // Not used
+    (void)sim_time;  // Không dùng simulation time
     
-    char time_str[32];
-    format_elapsed_time(time_str, get_elapsed_time());
+    char time_str[16];
+    get_current_time_str(time_str);
     
     export_printf("[%s] [Queue] %s\n", time_str, queue_content);
 }

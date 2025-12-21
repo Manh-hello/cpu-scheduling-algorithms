@@ -113,6 +113,39 @@ void sjf(Process proc[], int n) {
         completed++;
     }
     export_printf("|\n\n");
+
+    export_printf("Time:  ");
+    current_time = 0;
+    completed = 0;
+    for (int i = 0; i < n; i++) is_completed[i] = 0;
+    
+    export_printf(" %3d ", current_time);
+    
+    while (completed < n) {
+        int shortest = -1;
+        int min_burst = INT_MAX;
+        
+        for (int i = 0; i < n; i++) {
+            if (!is_completed[i] && 
+                proc[i].arrival_time <= current_time &&
+                proc[i].burst_time < min_burst) {
+                shortest = i;
+                min_burst = proc[i].burst_time;
+            }
+        }
+        
+        if (shortest == -1) {
+            current_time++;
+            export_printf(" %3d  ", current_time);
+            continue;
+        }
+        
+        current_time = proc[shortest].completion_time;
+        export_printf(" %3d ", current_time);
+        is_completed[shortest] = 1;
+        completed++;
+    }
+    export_printf("\n\n");
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);

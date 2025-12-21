@@ -39,7 +39,7 @@ void srtf(Process proc[], int n) {
         
         // New arrival
         if (proc[shortest].arrival_time == current_time && !proc[shortest].first_run) {
-            sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Entered ready queue",
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
                     proc[shortest].arrival_time, proc[shortest].burst_time, proc[shortest].priority);
             log_event(current_time, "ARR", proc[shortest].pid, details);
         }
@@ -55,12 +55,12 @@ void srtf(Process proc[], int n) {
         // Lần đầu chạy
         if (!proc[shortest].first_run) {
             proc[shortest].response_time = current_time - proc[shortest].arrival_time;
-            sprintf(details, "START   | Response Time=%d, Remaining=%d | First time running",
+            sprintf(details, "START    | Response Time=%d, Remaining=%d | First time running",
                     proc[shortest].response_time, proc[shortest].remaining_time);
             log_event(current_time, "RUN", proc[shortest].pid, details);
             proc[shortest].first_run = 1;
         } else if (prev_proc != shortest) {
-            sprintf(details, "RESUME  | Remaining Time=%d | Continuing execution",
+            sprintf(details, "RESUME   | Remaining Time=%d | Continuing execution",
                     proc[shortest].remaining_time);
             log_event(current_time, "RUN", proc[shortest].pid, details);
         }

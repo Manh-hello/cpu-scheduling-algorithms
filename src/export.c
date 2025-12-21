@@ -8,7 +8,7 @@ FILE *output_file = NULL;
 int export_enabled = 0;
 char export_filename[256] = "";
 struct timeval simulation_start_time;
-int time_scale_ms = 1000;  // Each simulation time unit = 1000ms real time
+int time_scale_ms = 100;  // Each simulation time unit = 1000ms real time
 
 typedef struct {
     char name[50];

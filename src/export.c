@@ -149,7 +149,7 @@ void export_header(const char *algorithm_name) {
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");
     export_printf("\n");
-    export_printf("                         %s\n", algorithm_name);
+    export_printf("    %s\n", algorithm_name);
     export_printf("                    Started at: [%s]\n", time_str);
     export_printf("\n");
     export_printf("════════════════════════════════════════════════════════════════════════════════\n");

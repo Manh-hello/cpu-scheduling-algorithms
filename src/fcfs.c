@@ -33,13 +33,13 @@ void fcfs(Process proc[], int n) {
         }
         
         // Process arrives
-        sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Entering ready queue", 
+        sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entering ready queue", 
                 proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
         log_event(current_time, "ARR", proc[i].pid, details);
         
         // Process starts
         proc[i].response_time = current_time - proc[i].arrival_time;
-        sprintf(details, "START   | Response Time=%d | Beginning execution", 
+        sprintf(details, "START    | Response Time=%d | Beginning execution", 
                 proc[i].response_time);
         log_event(current_time, "RUN", proc[i].pid, details);
         

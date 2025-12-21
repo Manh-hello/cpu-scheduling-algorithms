@@ -97,7 +97,7 @@ void fcfs(Process proc[], int n) {
     }
     export_printf("|\n");
     
-    export_printf("Time:     ");
+    export_printf("Time:  ");
     current_time = 0;
     for (int i = 0; i < n; i++) {
         if (current_time < proc[i].arrival_time) {

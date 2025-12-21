@@ -201,7 +201,7 @@ void export_comparison_summary() {
     fprintf(output_file, "|\n");
     fprintf(output_file, "| %-30s | %8s | %8s | %8s | %8s |\n", 
             "Algorithm", "Avg TAT", "Avg WT", "Avg RT", "CPU %%");
-    fprintf(output_file, "|%-30s-|-----------|----------|----------|----------|\n", "------------------------------");
+    fprintf(output_file, "|%-30s--|----------|----------|----------|----------|\n", "------------------------------");
     
     for (int i = 0; i < result_count; i++) {
         fprintf(output_file, "| %-30s | %8.2f | %8.2f | %8.2f | %7.2f%% |\n",

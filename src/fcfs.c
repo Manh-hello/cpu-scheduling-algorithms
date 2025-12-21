@@ -106,7 +106,7 @@ void fcfs(Process proc[], int n) {
             export_printf(" %3d  ", current_time);
         }
         current_time = proc[i].completion_time;
-        export_printf(" %3d  ", current_time);
+        export_printf(" %3d", current_time);
     }
     export_printf("\n");
     

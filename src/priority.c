@@ -121,6 +121,39 @@ void priority_non_preemptive(Process proc[], int n) {
         completed++;
     }
     export_printf("|\n\n");
+
+    export_printf("Time:  ");
+    
+    current_time = 0;
+    completed = 0;
+    for (int i = 0; i < n; i++) is_completed[i] = 0;
+    
+    export_printf(" %3d ", current_time);
+    
+    while (completed < n) {
+        int highest = -1;
+        int min_priority = INT_MAX;
+        
+        for (int i = 0; i < n; i++) {
+            if (!is_completed[i] && 
+                proc[i].arrival_time <= current_time &&
+                proc[i].priority < min_priority) {
+                highest = i;
+                min_priority = proc[i].priority;
+            }
+        }
+        
+        if (highest == -1) {
+            current_time++;
+            continue;
+        }
+        
+        current_time = proc[highest].completion_time;
+        export_printf(" %3d ", current_time);
+        is_completed[highest] = 1;
+        completed++;
+    }
+    export_printf("\n\n");
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);
@@ -291,6 +324,60 @@ void priority_preemptive(Process proc[], int n) {
         }
     }
     export_printf("|\n\n");
+
+    export_printf("Time:  ");
+    
+    // Reset
+    for (int i = 0; i < n; i++) {
+        proc[i].remaining_time = proc[i].burst_time;
+        proc[i].first_run = 0;
+    }
+    
+    current_time = 0;
+    completed = 0;
+    prev_proc = -1;
+    
+    export_printf(" %3d ", current_time);
+    
+    while (completed < n) {
+        int highest = -1;
+        int min_priority = INT_MAX;
+        
+        for (int i = 0; i < n; i++) {
+            if (proc[i].arrival_time <= current_time &&
+                proc[i].remaining_time > 0 &&
+                proc[i].priority < min_priority) {
+                highest = i;
+                min_priority = proc[i].priority;
+            }
+        }
+        
+        if (highest == -1) {
+            current_time++;
+            continue;
+        }
+        
+        if (prev_proc != highest) {
+            export_printf(" %3d ", current_time);
+        }
+        
+        if (!proc[highest].first_run) {
+            proc[highest].response_time = current_time - proc[highest].arrival_time;
+            proc[highest].first_run = 1;
+        }
+        
+        proc[highest].remaining_time--;
+        current_time++;
+        
+        if (proc[highest].remaining_time == 0) {
+            proc[highest].completion_time = current_time;
+            export_printf(" %3d  ", current_time);
+            completed++;
+        }
+        
+        prev_proc = highest;
+    }
+    export_printf("\n\n");
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);

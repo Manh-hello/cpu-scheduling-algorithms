@@ -166,6 +166,60 @@ void srtf(Process proc[], int n) {
         }
     }
     export_printf("|\n\n");
+
+    export_printf("Time:  ");
+    
+    // Reset lại để tính time
+    for (int i = 0; i < n; i++) {
+        proc[i].remaining_time = proc[i].burst_time;
+        proc[i].first_run = 0;
+    }
+    
+    current_time = 0;
+    completed = 0;
+    prev_proc = -1;
+    
+    export_printf(" %3d ", current_time);
+    
+    while (completed < n) {
+        int shortest = -1;
+        int min_remaining = INT_MAX;
+        
+        for (int i = 0; i < n; i++) {
+            if (proc[i].arrival_time <= current_time &&
+                proc[i].remaining_time > 0 &&
+                proc[i].remaining_time < min_remaining) {
+                shortest = i;
+                min_remaining = proc[i].remaining_time;
+            }
+        }
+        
+        if (shortest == -1) {
+            current_time++;
+            continue;
+        }
+        
+        if (prev_proc != shortest) {
+            export_printf(" %3d ", current_time);
+        }
+        
+        if (!proc[shortest].first_run) {
+            proc[shortest].response_time = current_time - proc[shortest].arrival_time;
+            proc[shortest].first_run = 1;
+        }
+        
+        proc[shortest].remaining_time--;
+        current_time++;
+        
+        if (proc[shortest].remaining_time == 0) {
+            proc[shortest].completion_time = current_time;
+            export_printf(" %3d  ", current_time);
+            completed++;
+        }
+        
+        prev_proc = shortest;
+    }
+    export_printf("\n\n");
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);

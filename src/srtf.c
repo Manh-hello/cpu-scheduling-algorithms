@@ -210,7 +210,7 @@ void srtf(Process proc[], int n) {
         // Process complete HOẶC (2) Sắp switch sang process khác
         if (proc[shortest].remaining_time == 0) {
             proc[shortest].completion_time = current_time;
-            export_printf(" %3d  ", current_time);  // In khi complete
+            export_printf(" %3d ", current_time);  // In khi complete
             completed++;
         } else {
             // Kiểm tra xem time unit tiếp theo có bị preempt không

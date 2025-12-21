@@ -35,7 +35,7 @@ void round_robin(Process proc[], int n) {
     export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
     // Log first arrival
-    sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Added to ready queue", 
+    sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue", 
             proc[first_idx].arrival_time, proc[first_idx].burst_time, proc[first_idx].priority);
     log_event(current_time, "ARR", proc[first_idx].pid, details);
     
@@ -85,7 +85,7 @@ void round_robin(Process proc[], int n) {
             log_event(current_time, "RUN", proc[idx].pid, details);
             proc[idx].first_run = 1;
         } else {
-            sprintf(details, "RESUME  | Remaining Time=%d | Continuing execution",
+            sprintf(details, "RESUME   | Remaining Time=%d | Continuing execution",
                     proc[idx].remaining_time);
             log_event(current_time, "RUN", proc[idx].pid, details);
         }

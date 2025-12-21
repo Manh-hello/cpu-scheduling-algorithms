@@ -35,14 +35,14 @@ void priority_non_preemptive(Process proc[], int n) {
         
         // Process arrives
         if (proc[highest].arrival_time == current_time) {
-            sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
                     proc[highest].arrival_time, proc[highest].burst_time, proc[highest].priority);
             log_event(current_time, "ARR", proc[highest].pid, details);
         }
         
         // Process starts
         proc[highest].response_time = current_time - proc[highest].arrival_time;
-        sprintf(details, "START   | Response Time=%d, Priority=%d | Beginning execution",
+        sprintf(details, "START    | Response Time=%d, Priority=%d | Beginning execution",
                 proc[highest].response_time, proc[highest].priority);
         log_event(current_time, "RUN", proc[highest].pid, details);
         
@@ -168,7 +168,7 @@ void priority_preemptive(Process proc[], int n) {
         
         // New arrival
         if (proc[highest].arrival_time == current_time && !proc[highest].first_run) {
-            sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Entered ready queue",
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
                     proc[highest].arrival_time, proc[highest].burst_time, proc[highest].priority);
             log_event(current_time, "ARR", proc[highest].pid, details);
         }
@@ -185,12 +185,12 @@ void priority_preemptive(Process proc[], int n) {
         // Lần đầu chạy
         if (!proc[highest].first_run) {
             proc[highest].response_time = current_time - proc[highest].arrival_time;
-            sprintf(details, "START   | Response Time=%d, Priority=%d, Remaining=%d | First run",
+            sprintf(details, "START    | Response Time=%d, Priority=%d, Remaining=%d | First run",
                     proc[highest].response_time, proc[highest].priority, proc[highest].remaining_time);
             log_event(current_time, "RUN", proc[highest].pid, details);
             proc[highest].first_run = 1;
         } else if (prev_proc != highest) {
-            sprintf(details, "RESUME  | Priority=%d, Remaining Time=%d | Continuing execution",
+            sprintf(details, "RESUME   | Priority=%d, Remaining Time=%d | Continuing execution",
                     proc[highest].priority, proc[highest].remaining_time);
             log_event(current_time, "RUN", proc[highest].pid, details);
         }

@@ -60,7 +60,7 @@ int read_from_file(Process proc[], int *n, const char *filename) {
 
 void print_input_table(Process proc[], int n) {
     export_printf("\n");
-    export_printf("+----------------------- INPUT PROCESS DATA ------------------------+\n");
+    export_printf("+----------------------- INPUT PROCESS DATA -------------------+\n");
     export_printf("| PID | Arrival Time | Burst Time | Priority | State           |\n");
     export_printf("+-----+--------------+------------+----------+-----------------+\n");
     
@@ -78,7 +78,7 @@ void print_input_table(Process proc[], int n) {
 
 void print_table(Process proc[], int n) {
     export_printf("\n");
-    export_printf("+-----------------------------------------------------------------------+\n");
+    export_printf("+-------------------------------------------------------------+\n");
     export_printf("| PID | AT  | BT  | CT  | TAT | WT  | RT  | Status            |\n");
     export_printf("+-----+-----+-----+-----+-----+-----+-----+-------------------+\n");
     
@@ -131,10 +131,10 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
     export_printf("╭─────────────────────────────────────────────────────╮\n");
     export_printf("│              📊 PERFORMANCE METRICS                 │\n");
     export_printf("├─────────────────────────────────────────────────────┤\n");
-    export_printf("│  Total Execution Time    : %-6d time units       │\n", metrics->total_time);
-    export_printf("│  CPU Utilization         : %-6.2f %%               │\n", metrics->cpu_utilization);
-    export_printf("│  Avg Turnaround Time     : %-6.2f time units      │\n", metrics->avg_turnaround);
-    export_printf("│  Avg Waiting Time        : %-6.2f time units      │\n", metrics->avg_waiting);
-    export_printf("│  Avg Response Time       : %-6.2f time units      │\n", metrics->avg_response);
+    export_printf("│  Total Execution Time    : %-6d time units        │\n", metrics->total_time);
+    export_printf("│  CPU Utilization         : %-6.2f %%                 │\n", metrics->cpu_utilization);
+    export_printf("│  Avg Turnaround Time     : %-6.2f time units        │\n", metrics->avg_turnaround);
+    export_printf("│  Avg Waiting Time        : %-6.2f time units        │\n", metrics->avg_waiting);
+    export_printf("│  Avg Response Time       : %-6.2f time units        │\n", metrics->avg_response);
     export_printf("╰─────────────────────────────────────────────────────╯\n");
 }

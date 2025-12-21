@@ -32,13 +32,13 @@ void sjf(Process proc[], int n) {
         }
         
         if (proc[shortest].arrival_time == current_time) {
-            sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
                     proc[shortest].arrival_time, proc[shortest].burst_time, proc[shortest].priority);
             log_event(current_time, "ARR", proc[shortest].pid, details);
         }
         
         proc[shortest].response_time = current_time - proc[shortest].arrival_time;
-        sprintf(details, "START   | Response Time=%d, BT=%d | Beginning execution",
+        sprintf(details, "START    | Response Time=%d, BT=%d | Beginning execution",
                 proc[shortest].response_time, proc[shortest].burst_time);
         log_event(current_time, "RUN", proc[shortest].pid, details);
         

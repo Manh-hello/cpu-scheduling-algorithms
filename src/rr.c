@@ -227,6 +227,74 @@ void round_robin(Process proc[], int n) {
         }
     }
     export_printf("|\n\n");
+
+    export_printf("Time:  ");
+    
+    // Reset lại
+    current_time = 0;
+    for (int i = 0; i < n; i++) {
+        proc[i].remaining_time = proc[i].burst_time;
+        proc[i].first_run = 0;
+    }
+    front = rear = 0;
+    for (int i = 0; i < MAX_PROCESSES; i++) in_queue[i] = 0;
+    completed = 0;
+    
+    if (first_idx != -1) {
+        queue[rear++] = first_idx;
+        in_queue[first_idx] = 1;
+        current_time = proc[first_idx].arrival_time;
+    }
+    
+    export_printf(" %3d ", current_time);
+    
+    while (completed < n) {
+        if (front == rear) {
+            for (int i = 0; i < n; i++) {
+                if (!in_queue[i] && proc[i].remaining_time > 0 &&
+                    proc[i].arrival_time <= current_time) {
+                    queue[rear++] = i;
+                    in_queue[i] = 1;
+                    break;
+                }
+            }
+            if (front == rear) {
+                current_time++;
+                continue;
+            }
+        }
+        
+        int idx = queue[front++];
+        
+        if (!proc[idx].first_run) {
+            proc[idx].response_time = current_time - proc[idx].arrival_time;
+            proc[idx].first_run = 1;
+        }
+        
+        int exec_time = (proc[idx].remaining_time > TIME_QUANTUM) ? 
+                        TIME_QUANTUM : proc[idx].remaining_time;
+        
+        proc[idx].remaining_time -= exec_time;
+        current_time += exec_time;
+        export_printf(" %3d ", current_time);
+        
+        for (int i = 0; i < n; i++) {
+            if (!in_queue[i] && proc[i].remaining_time > 0 &&
+                proc[i].arrival_time <= current_time) {
+                queue[rear++] = i;
+                in_queue[i] = 1;
+            }
+        }
+        
+        if (proc[idx].remaining_time > 0) {
+            queue[rear++] = idx;
+        } else {
+            proc[idx].completion_time = current_time;
+            in_queue[idx] = 0;
+            completed++;
+        }
+    }
+    export_printf("\n\n");
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);

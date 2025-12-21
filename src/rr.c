@@ -52,7 +52,7 @@ void round_robin(Process proc[], int n) {
                     in_queue[i] = 1;
                     found = 1;
                     
-                    sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                    sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
                             proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
                     log_event(current_time, "ARR", proc[i].pid, details);
                     break;
@@ -80,7 +80,7 @@ void round_robin(Process proc[], int n) {
         // First run
         if (!proc[idx].first_run) {
             proc[idx].response_time = current_time - proc[idx].arrival_time;
-            sprintf(details, "START   | Response Time=%d, Remaining=%d | First time running",
+            sprintf(details, "START    | Response Time=%d, Remaining=%d | First time running",
                     proc[idx].response_time, proc[idx].remaining_time);
             log_event(current_time, "RUN", proc[idx].pid, details);
             proc[idx].first_run = 1;
@@ -114,7 +114,7 @@ void round_robin(Process proc[], int n) {
                     proc[i].arrival_time == current_time) {
                     queue[rear++] = i;
                     in_queue[i] = 1;
-                    sprintf(details, "ARRIVED | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                    sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
                             proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
                     log_event(current_time, "ARR", proc[i].pid, details);
                 }
@@ -139,7 +139,7 @@ void round_robin(Process proc[], int n) {
         
         // Check if process finished or preempted
         if (proc[idx].remaining_time > 0) {
-            sprintf(details, "PREEMPT | Remaining Time=%d | Time quantum expired, back to queue",
+            sprintf(details, "PREEMPT  | Remaining Time=%d | Time quantum expired, back to queue",
                     proc[idx].remaining_time);
             log_event(current_time, "PRE", proc[idx].pid, details);
             queue[rear++] = idx;

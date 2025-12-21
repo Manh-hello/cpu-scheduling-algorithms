@@ -273,7 +273,7 @@ void priority_preemptive(Process proc[], int n) {
     export_printf("[✓] All processes completed\n\n");
     
     export_printf("============================= GANTT CHART ==================================\n\n");
-    export_printf("Timeline: ");
+    export_printf("Timeline: |  ");
     
     // Rebuild gantt
     for (int i = 0; i < n; i++) {
@@ -329,54 +329,70 @@ void priority_preemptive(Process proc[], int n) {
     
     // Reset
     for (int i = 0; i < n; i++) {
-        proc[i].remaining_time = proc[i].burst_time;
-        proc[i].first_run = 0;
+    proc[i].remaining_time = proc[i].burst_time;
+    proc[i].first_run = 0;
+}
+
+current_time = 0;
+completed = 0;
+prev_proc = -1;
+
+export_printf(" %3d  ", current_time);  // In thời điểm đầu
+
+while (completed < n) {
+    int highest = -1;
+    int min_priority = INT_MAX;
+    
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time <= current_time &&
+            proc[i].remaining_time > 0 &&
+            proc[i].priority < min_priority) {
+            highest = i;
+            min_priority = proc[i].priority;
+        }
     }
     
-    current_time = 0;
-    completed = 0;
-    prev_proc = -1;
+    if (highest == -1) {
+        current_time++;
+        continue;
+    }
     
-    export_printf(" %3d ", current_time);
+    // CHỈ ĐẶT RESPONSE TIME, KHÔNG IN TIME Ở ĐÂY
+    if (!proc[highest].first_run) {
+        proc[highest].response_time = current_time - proc[highest].arrival_time;
+        proc[highest].first_run = 1;
+    }
     
-    while (completed < n) {
-        int highest = -1;
-        int min_priority = INT_MAX;
+    proc[highest].remaining_time--;
+    current_time++;
+    
+    // Process complete HOẶC (2) Sắp switch sang process khác
+    if (proc[highest].remaining_time == 0) {
+        proc[highest].completion_time = current_time;
+        export_printf(" %3d  ", current_time);  // In khi complete
+        completed++;
+    } else {
+        // Kiểm tra xem time unit tiếp theo có bị preempt không
+        int next_highest = -1;
+        int next_min_priority = INT_MAX;
         
         for (int i = 0; i < n; i++) {
             if (proc[i].arrival_time <= current_time &&
                 proc[i].remaining_time > 0 &&
-                proc[i].priority < min_priority) {
-                highest = i;
-                min_priority = proc[i].priority;
+                proc[i].priority < next_min_priority) {
+                next_highest = i;
+                next_min_priority = proc[i].priority;
             }
         }
         
-        if (highest == -1) {
-            current_time++;
-            continue;
-        }
-        
-        if (prev_proc != highest) {
-            export_printf(" %3d ", current_time);
-        }
-        
-        if (!proc[highest].first_run) {
-            proc[highest].response_time = current_time - proc[highest].arrival_time;
-            proc[highest].first_run = 1;
-        }
-        
-        proc[highest].remaining_time--;
-        current_time++;
-        
-        if (proc[highest].remaining_time == 0) {
-            proc[highest].completion_time = current_time;
+        // Nếu process khác sẽ chạy tiếp, in time hiện tại
+        if (next_highest != highest) {
             export_printf(" %3d  ", current_time);
-            completed++;
         }
-        
-        prev_proc = highest;
     }
+    
+    prev_proc = highest;
+}
     export_printf("\n\n");
     
     Metrics metrics;

@@ -8,7 +8,7 @@ FILE *output_file = NULL;
 int export_enabled = 0;
 char export_filename[256] = "";
 struct timeval simulation_start_time;
-int time_scale_ms = 1000;  // Each simulation time unit = 100ms real time
+int time_scale_ms = 1000;  // Each simulation time unit = 1000ms real time
 
 typedef struct {
     char name[50];
@@ -76,12 +76,12 @@ void enable_export(const char *filename) {
     fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
     fprintf(output_file, "\n");
     fprintf(output_file, "+------------------------ SYSTEM CONFIGURATION -------------------------+\n");
-    fprintf(output_file, "| Start Time       : %04d-%02d-%02d %02d:%02d:%02d                              |\n",
+    fprintf(output_file, "| Start Time       : %04d-%02d-%02d %02d:%02d:%02d                                |\n",
             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
             t->tm_hour, t->tm_min, t->tm_sec);
     fprintf(output_file, "| Input File       : data/processes.txt                                 |\n");
     fprintf(output_file, "| Time Quantum     : %d                                                  |\n", TIME_QUANTUM);
-    fprintf(output_file, "| Time Scale       : 1 time unit = %d ms                                |\n", time_scale_ms);
+    fprintf(output_file, "| Time Scale       : 1 time unit = %d ms                              |\n", time_scale_ms);
     fprintf(output_file, "| Total Algorithms : 6                                                  |\n");
     fprintf(output_file, "+-----------------------------------------------------------------------+\n");
     fprintf(output_file, "\n");

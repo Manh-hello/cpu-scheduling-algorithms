@@ -112,7 +112,7 @@ void srtf(Process proc[], int n) {
     export_printf("[✓] All processes completed\n\n");
     
     export_printf("============================= GANTT CHART ==================================\n\n");
-    export_printf("Timeline: ");
+    export_printf("Timeline: |  ");
     
     // Rebuild gantt chart
     for (int i = 0; i < n; i++) {
@@ -168,57 +168,72 @@ void srtf(Process proc[], int n) {
     export_printf("|\n\n");
 
     export_printf("Time:  ");
-    
-    // Reset lại để tính time
+
     for (int i = 0; i < n; i++) {
-        proc[i].remaining_time = proc[i].burst_time;
-        proc[i].first_run = 0;
+    proc[i].remaining_time = proc[i].burst_time;
+    proc[i].first_run = 0;
+}
+
+current_time = 0;
+completed = 0;
+prev_proc = -1;
+
+export_printf(" %3d  ", current_time);  // In thời điểm đầu
+
+while (completed < n) {
+    int shortest = -1;
+    int min_remaining = INT_MAX;
+    
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time <= current_time &&
+            proc[i].remaining_time > 0 &&
+            proc[i].remaining_time < min_remaining) {
+            shortest = i;
+            min_remaining = proc[i].remaining_time;
+        }
     }
     
-    current_time = 0;
-    completed = 0;
-    prev_proc = -1;
+    if (shortest == -1) {
+        current_time++;
+        continue;
+    }
     
-    export_printf(" %3d ", current_time);
+    // CHỈ ĐẶT RESPONSE TIME, KHÔNG IN TIME Ở ĐÂY
+    if (!proc[shortest].first_run) {
+        proc[shortest].response_time = current_time - proc[shortest].arrival_time;
+        proc[shortest].first_run = 1;
+    }
     
-    while (completed < n) {
-        int shortest = -1;
-        int min_remaining = INT_MAX;
+    proc[shortest].remaining_time--;
+    current_time++;
+    
+    // Process complete HOẶC (2) Sắp switch sang process khác
+    if (proc[shortest].remaining_time == 0) {
+        proc[shortest].completion_time = current_time;
+        export_printf(" %3d  ", current_time);  // In khi complete
+        completed++;
+    } else {
+        // Kiểm tra xem time unit tiếp theo có bị preempt không
+        int next_shortest = -1;
+        int next_min_remaining = INT_MAX;
         
         for (int i = 0; i < n; i++) {
             if (proc[i].arrival_time <= current_time &&
                 proc[i].remaining_time > 0 &&
-                proc[i].remaining_time < min_remaining) {
-                shortest = i;
-                min_remaining = proc[i].remaining_time;
+                proc[i].remaining_time < next_min_remaining) {
+                next_shortest = i;
+                next_min_remaining = proc[i].remaining_time;
             }
         }
         
-        if (shortest == -1) {
-            current_time++;
-            continue;
-        }
-        
-        if (prev_proc != shortest) {
-            export_printf(" %3d ", current_time);
-        }
-        
-        if (!proc[shortest].first_run) {
-            proc[shortest].response_time = current_time - proc[shortest].arrival_time;
-            proc[shortest].first_run = 1;
-        }
-        
-        proc[shortest].remaining_time--;
-        current_time++;
-        
-        if (proc[shortest].remaining_time == 0) {
-            proc[shortest].completion_time = current_time;
+        // Nếu process khác sẽ chạy tiếp, in time hiện tại
+        if (next_shortest != shortest) {
             export_printf(" %3d  ", current_time);
-            completed++;
         }
-        
-        prev_proc = shortest;
     }
+    
+    prev_proc = shortest;
+}
     export_printf("\n\n");
     
     Metrics metrics;

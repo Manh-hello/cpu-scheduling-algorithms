@@ -2,12 +2,13 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 FILE *output_file = NULL;
 int export_enabled = 0;
 char export_filename[256] = "";
 struct timeval simulation_start_time;
-int time_scale_ms = 100;  // Each simulation time unit = 100ms real time
+int time_scale_ms = 1000;  // Each simulation time unit = 100ms real time
 
 typedef struct {
     char name[50];
@@ -17,8 +18,12 @@ typedef struct {
 AlgorithmResult results[6];
 int result_count = 0;
 
-// Get current system time as HH:MM:SS
+// Get current system time as HH:MM:SSz
 void get_current_time_str(char *buffer) {
+    // 2 dòng này để set timezone Việt Nam
+    setenv("TZ", "Asia/Ho_Chi_Minh", 1);
+    tzset();
+    
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     sprintf(buffer, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
@@ -55,6 +60,9 @@ void enable_export(const char *filename) {
     result_count = 0;
     
     gettimeofday(&simulation_start_time, NULL);
+    
+    setenv("TZ", "Asia/Ho_Chi_Minh", 1);
+    tzset();
     
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
@@ -148,7 +156,7 @@ void export_header(const char *algorithm_name) {
     export_printf("\n");
 }
 
-// ✅ SỬA: Log event với real system time [HH:MM:SS]
+// Log event với real system time [HH:MM:SS]
 void log_event(int sim_time, const char *event_type, int pid, const char *details) {
     (void)sim_time;  // Không dùng simulation time nữa
     
@@ -164,7 +172,7 @@ void log_event(int sim_time, const char *event_type, int pid, const char *detail
     }
 }
 
-// ✅ SỬA: Log queue với real system time [HH:MM:SS]
+// Log queue với real system time [HH:MM:SS]
 void log_queue(int sim_time, const char *queue_content) {
     (void)sim_time;  // Không dùng simulation time
     
@@ -193,7 +201,7 @@ void export_comparison_summary() {
     fprintf(output_file, "|\n");
     fprintf(output_file, "| %-30s | %8s | %8s | %8s | %8s |\n", 
             "Algorithm", "Avg TAT", "Avg WT", "Avg RT", "CPU %%");
-    fprintf(output_file, "|%-30s-|----------|----------|----------|----------|\n", "------------------------------");
+    fprintf(output_file, "|%-30s-|-----------|----------|----------|----------|\n", "------------------------------");
     
     for (int i = 0; i < result_count; i++) {
         fprintf(output_file, "| %-30s | %8.2f | %8.2f | %8.2f | %7.2f%% |\n",
@@ -216,11 +224,11 @@ void export_comparison_summary() {
     
     fprintf(output_file, "\n");
     fprintf(output_file, "+--------------------------- BEST PERFORMERS --------------------------------+\n");
-    fprintf(output_file, "| [★] Best Avg Turnaround Time : %-30s (%.2f) |\n", 
+    fprintf(output_file, "| [★] Best Avg Turnaround Time : %-36s (%.2f) |\n", 
             results[best_tat].name, results[best_tat].metrics.avg_turnaround);
-    fprintf(output_file, "| [★] Best Avg Waiting Time    : %-30s (%.2f) |\n",
+    fprintf(output_file, "| [★] Best Avg Waiting Time    : %-36s (%.2f) |\n",
             results[best_wt].name, results[best_wt].metrics.avg_waiting);
-    fprintf(output_file, "| [★] Best Avg Response Time   : %-30s (%.2f) |\n",
+    fprintf(output_file, "| [★] Best Avg Response Time   : %-36s (%.2f) |\n",
             results[best_rt].name, results[best_rt].metrics.avg_response);
     fprintf(output_file, "+----------------------------------------------------------------------------+\n");
 }

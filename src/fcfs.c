@@ -99,15 +99,16 @@ void fcfs(Process proc[], int n) {
     
     export_printf("Time:  ");
     current_time = 0;
+    export_printf(" %3d  ", current_time);
     for (int i = 0; i < n; i++) {
         if (current_time < proc[i].arrival_time) {
-            export_printf(" %3d  ", current_time);
             current_time = proc[i].arrival_time;
+            export_printf(" %3d  ", current_time);
         }
-        export_printf(" %3d  ", current_time);
         current_time = proc[i].completion_time;
+        export_printf(" %3d  ", current_time);
     }
-    export_printf(" %3d\n", current_time);
+    export_printf("\n");
     
     Metrics metrics;
     calculate_metrics(proc, n, &metrics);

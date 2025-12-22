@@ -1,6 +1,9 @@
 #include "../include/scheduler.h"
 
 int main() {
+    setenv("TZ", "Asia/Ho_Chi_Minh", 1);
+    tzset();
+    
     Process proc[MAX_PROCESSES];
     Process proc_copy[MAX_PROCESSES];
     int n = 0;

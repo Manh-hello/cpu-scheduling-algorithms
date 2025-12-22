@@ -138,3 +138,17 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
     export_printf("│  Avg Response Time       : %-6.2f time units        │\n", metrics->avg_response);
     export_printf("╰─────────────────────────────────────────────────────╯\n");
 }
+
+void log_event_with_sim_time(int sim_time, const char *event_type, int pid, const char *details) {
+    if (pid > 0) {
+        export_printf("[t=%02d] [%s] P%-2d | %s\n", 
+                     sim_time, event_type, pid, details);
+    } else {
+        export_printf("[t=%02d] [%s]     | %s\n",
+                     sim_time, event_type, details);
+    }
+}
+
+void log_queue_with_sim_time(int sim_time, const char *queue_content) {
+    export_printf("[t=%02d] [Queue] %s\n", sim_time, queue_content);
+}

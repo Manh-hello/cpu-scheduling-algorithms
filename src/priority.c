@@ -7,15 +7,36 @@ void priority_non_preemptive(Process proc[], int n) {
     int current_time = 0;
     int completed = 0;
     int is_completed[MAX_PROCESSES] = {0};
+    int logged_arrival[MAX_PROCESSES] = {0};
     char details[200];
     
     export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
+    // Log processes arrive lúc time 0
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time == 0) {
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                    proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+            log_event_with_sim_time(0, "ARR", proc[i].pid, details);
+            logged_arrival[i] = 1;
+        }
+    }
+    
     while (completed < n) {
+        // Log new arrivals tại current_time
+        for (int i = 0; i < n; i++) {
+            if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
+                sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                        proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+                log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                logged_arrival[i] = 1;
+            }
+        }
+        
+        // Tìm process có priority cao nhất (số nhỏ nhất)
         int highest = -1;
         int min_priority = INT_MAX;
         
-        // Tìm process có priority cao nhất (số nhỏ nhất)
         for (int i = 0; i < n; i++) {
             if (!is_completed[i] && 
                 proc[i].arrival_time <= current_time &&
@@ -27,39 +48,44 @@ void priority_non_preemptive(Process proc[], int n) {
         
         if (highest == -1) {
             sprintf(details, "IDLE | CPU waiting for next process");
-            log_event(current_time, "CPU", 0, details);
-            simulate_time_unit();
+            log_event_with_sim_time(current_time, "CPU", 0, details);
             current_time++;
+            simulate_time_unit();
             continue;
-        }
-        
-        // Process arrives
-        if (proc[highest].arrival_time == current_time) {
-            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
-                    proc[highest].arrival_time, proc[highest].burst_time, proc[highest].priority);
-            log_event(current_time, "ARR", proc[highest].pid, details);
         }
         
         // Process starts
         proc[highest].response_time = current_time - proc[highest].arrival_time;
         sprintf(details, "START    | Response Time=%d, Priority=%d | Beginning execution",
                 proc[highest].response_time, proc[highest].priority);
-        log_event(current_time, "RUN", proc[highest].pid, details);
+        log_event_with_sim_time(current_time, "RUN", proc[highest].pid, details);
         
         // Process running
         for (int t = 1; t <= proc[highest].burst_time; t++) {
-            simulate_time_unit();
             current_time++;
             
+            // Log trước khi sleep
             if (t == proc[highest].burst_time) {
                 sprintf(details, "COMPLETE | CT=%d, TAT=%d | Finished execution",
                         current_time, current_time - proc[highest].arrival_time);
-                log_event(current_time, "FIN", proc[highest].pid, details);
+                log_event_with_sim_time(current_time, "FIN", proc[highest].pid, details);
             } else if (t % 2 == 0 && proc[highest].burst_time > 3) {
                 sprintf(details, "RUNNING  | Progress: %d/%d | Still executing",
                         t, proc[highest].burst_time);
-                log_event(current_time, "RUN", proc[highest].pid, details);
+                log_event_with_sim_time(current_time, "RUN", proc[highest].pid, details);
             }
+            
+            // Log arrivals trong khi đang chạy
+            for (int i = 0; i < n; i++) {
+                if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
+                    sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                            proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+                    log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                    logged_arrival[i] = 1;
+                }
+            }
+            
+            simulate_time_unit();  // Sleep sau khi log
         }
         
         proc[highest].completion_time = current_time;
@@ -83,7 +109,7 @@ void priority_non_preemptive(Process proc[], int n) {
             } else {
                 strcat(queue_str, "EMPTY]");
             }
-            log_queue(current_time, queue_str);
+            log_queue_with_sim_time(current_time, queue_str);
         }
     }
     
@@ -168,20 +194,42 @@ void priority_preemptive(Process proc[], int n) {
     int completed = 0;
     int prev_proc = -1;
     int context_switches = 0;
+    int logged_arrival[MAX_PROCESSES] = {0};
     char details[200];
     
     // Reset remaining time
     for (int i = 0; i < n; i++) {
         proc[i].remaining_time = proc[i].burst_time;
+        proc[i].first_run = 0;
     }
     
     export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
+    // Log processes arrive lúc time 0
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time == 0) {
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
+                    proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+            log_event_with_sim_time(0, "ARR", proc[i].pid, details);
+            logged_arrival[i] = 1;
+        }
+    }
+    
     while (completed < n) {
+        // Log new arrivals tại current_time
+        for (int i = 0; i < n; i++) {
+            if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
+                sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
+                        proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+                log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                logged_arrival[i] = 1;
+            }
+        }
+        
+        // Tìm process có priority cao nhất
         int highest = -1;
         int min_priority = INT_MAX;
         
-        // Tìm process có priority cao nhất
         for (int i = 0; i < n; i++) {
             if (proc[i].arrival_time <= current_time &&
                 proc[i].remaining_time > 0 &&
@@ -193,26 +241,19 @@ void priority_preemptive(Process proc[], int n) {
         
         if (highest == -1) {
             sprintf(details, "IDLE | Waiting for processes to arrive");
-            log_event(current_time, "CPU", 0, details);
-            simulate_time_unit();
+            log_event_with_sim_time(current_time, "CPU", 0, details);
             current_time++;
+            simulate_time_unit();
             continue;
-        }
-        
-        // New arrival
-        if (proc[highest].arrival_time == current_time && !proc[highest].first_run) {
-            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
-                    proc[highest].arrival_time, proc[highest].burst_time, proc[highest].priority);
-            log_event(current_time, "ARR", proc[highest].pid, details);
         }
         
         // Context switch
         if (prev_proc != highest && prev_proc != -1) {
             context_switches++;
             sprintf(details, "CONTEXT SWITCH #%d | From P%d to P%d (Pri: %d->%d)",
-                    context_switches, prev_proc + 1, proc[highest].pid,
+                    context_switches, proc[prev_proc].pid, proc[highest].pid,
                     proc[prev_proc].priority, proc[highest].priority);
-            log_event(current_time, "CTX", proc[highest].pid, details);
+            log_event_with_sim_time(current_time, "CTX", proc[highest].pid, details);
         }
         
         // Lần đầu chạy
@@ -220,18 +261,18 @@ void priority_preemptive(Process proc[], int n) {
             proc[highest].response_time = current_time - proc[highest].arrival_time;
             sprintf(details, "START    | Response Time=%d, Priority=%d, Remaining=%d | First run",
                     proc[highest].response_time, proc[highest].priority, proc[highest].remaining_time);
-            log_event(current_time, "RUN", proc[highest].pid, details);
+            log_event_with_sim_time(current_time, "RUN", proc[highest].pid, details);
             proc[highest].first_run = 1;
         } else if (prev_proc != highest) {
             sprintf(details, "RESUME   | Priority=%d, Remaining Time=%d | Continuing execution",
                     proc[highest].priority, proc[highest].remaining_time);
-            log_event(current_time, "RUN", proc[highest].pid, details);
+            log_event_with_sim_time(current_time, "RUN", proc[highest].pid, details);
         }
 
-        simulate_time_unit();
         proc[highest].remaining_time--;
         current_time++;
         
+        // Log completion hoặc progress
         if (proc[highest].remaining_time == 0) {
             proc[highest].completion_time = current_time;
             completed++;
@@ -239,15 +280,9 @@ void priority_preemptive(Process proc[], int n) {
                     proc[highest].completion_time,
                     proc[highest].completion_time - proc[highest].arrival_time,
                     proc[highest].completion_time - proc[highest].arrival_time - proc[highest].burst_time);
-            log_event(current_time, "FIN", proc[highest].pid, details);
-        } else if (current_time % 3 == 0) {
-            sprintf(details, "RUNNING  | Priority=%d, Remaining=%d | Still executing",
-                    proc[highest].priority, proc[highest].remaining_time);
-            log_event(current_time, "RUN", proc[highest].pid, details);
-        }
-        
-        // Show ready queue
-        if (current_time % 5 == 0 || proc[highest].remaining_time == 0) {
+            log_event_with_sim_time(current_time, "FIN", proc[highest].pid, details);
+            
+            // Show ready queue
             char queue_str[200] = "Ready Queue: [";
             int queue_count = 0;
             for (int j = 0; j < n; j++) {
@@ -263,10 +298,19 @@ void priority_preemptive(Process proc[], int n) {
             } else {
                 strcat(queue_str, "EMPTY]");
             }
-            log_queue(current_time, queue_str);
+            log_queue_with_sim_time(current_time, queue_str);
+        } else {
+            // Log progress occasionally
+            if (proc[highest].remaining_time % 3 == 1 || 
+                proc[highest].remaining_time == proc[highest].burst_time - 1) {
+                sprintf(details, "RUNNING  | Priority=%d, Remaining=%d | Still executing",
+                        proc[highest].priority, proc[highest].remaining_time);
+                log_event_with_sim_time(current_time, "RUN", proc[highest].pid, details);
+            }
         }
         
         prev_proc = highest;
+        simulate_time_unit();  // Sleep sau khi log
     }
     
     export_printf("\n[✓] Total Context Switches: %d\n", context_switches);

@@ -8,12 +8,14 @@ void round_robin(Process proc[], int n) {
     int queue[MAX_PROCESSES * 10];
     int front = 0, rear = 0;
     int in_queue[MAX_PROCESSES] = {0};
+    int logged_arrival[MAX_PROCESSES] = {0};
     int context_switches = 0;
     char details[200];
     
     // Reset remaining time
     for (int i = 0; i < n; i++) {
         proc[i].remaining_time = proc[i].burst_time;
+        proc[i].first_run = 0;
     }
     
     // Find first process
@@ -27,44 +29,49 @@ void round_robin(Process proc[], int n) {
     }
     
     if (first_idx != -1) {
-        queue[rear++] = first_idx;
-        in_queue[first_idx] = 1;
         current_time = proc[first_idx].arrival_time;
     }
     
     export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
-    // Log first arrival
-    sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue", 
-            proc[first_idx].arrival_time, proc[first_idx].burst_time, proc[first_idx].priority);
-    log_event(current_time, "ARR", proc[first_idx].pid, details);
+    // Log processes arrive lúc time 0
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time == 0) {
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue", 
+                    proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+            log_event_with_sim_time(0, "ARR", proc[i].pid, details);
+            logged_arrival[i] = 1;
+            if (!in_queue[i]) {
+                queue[rear++] = i;
+                in_queue[i] = 1;
+            }
+        }
+    }
     
     int prev_proc = -1;
     
     while (completed < n) {
-        if (front == rear) {
-            // Queue empty
-            int found = 0;
-            for (int i = 0; i < n; i++) {
-                if (!in_queue[i] && proc[i].remaining_time > 0 &&
-                    proc[i].arrival_time <= current_time) {
+        // Log new arrivals tại current_time
+        for (int i = 0; i < n; i++) {
+            if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
+                sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                        proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+                log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                logged_arrival[i] = 1;
+                if (!in_queue[i] && proc[i].remaining_time > 0) {
                     queue[rear++] = i;
                     in_queue[i] = 1;
-                    found = 1;
-                    
-                    sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
-                            proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
-                    log_event(current_time, "ARR", proc[i].pid, details);
-                    break;
                 }
             }
-            if (!found) {
-                sprintf(details, "IDLE | Waiting for processes to arrive");
-                log_event(current_time, "CPU", 0, details);
-                simulate_time_unit();
-                current_time++;
-                continue;
-            }
+        }
+        
+        // Nếu queue empty
+        if (front == rear) {
+            sprintf(details, "IDLE | Waiting for processes to arrive");
+            log_event_with_sim_time(current_time, "CPU", 0, details);
+            current_time++;
+            simulate_time_unit();
+            continue;
         }
         
         int idx = queue[front++];
@@ -73,31 +80,28 @@ void round_robin(Process proc[], int n) {
         if (prev_proc != idx && prev_proc != -1) {
             context_switches++;
             sprintf(details, "CONTEXT SWITCH #%d | From P%d to P%d", 
-                    context_switches, prev_proc + 1, proc[idx].pid);
-            log_event(current_time, "CTX", proc[idx].pid, details);
+                    context_switches, proc[prev_proc].pid, proc[idx].pid);
+            log_event_with_sim_time(current_time, "CTX", proc[idx].pid, details);
         }
         
-        // First run
+        // First run hoặc resume
         if (!proc[idx].first_run) {
             proc[idx].response_time = current_time - proc[idx].arrival_time;
             sprintf(details, "START    | Response Time=%d, Remaining=%d | First time running",
                     proc[idx].response_time, proc[idx].remaining_time);
-            log_event(current_time, "RUN", proc[idx].pid, details);
+            log_event_with_sim_time(current_time, "RUN", proc[idx].pid, details);
             proc[idx].first_run = 1;
         } else {
             sprintf(details, "RESUME   | Remaining Time=%d | Continuing execution",
                     proc[idx].remaining_time);
-            log_event(current_time, "RUN", proc[idx].pid, details);
+            log_event_with_sim_time(current_time, "RUN", proc[idx].pid, details);
         }
         
         int exec_time = (proc[idx].remaining_time > TIME_QUANTUM) ? 
                         TIME_QUANTUM : proc[idx].remaining_time;
         
-        int start_time = current_time;
-        
-        // Execute and check for arrivals
+        // Execute time quantum
         for (int t = 0; t < exec_time; t++) {
-            simulate_time_unit();
             current_time++;
             proc[idx].remaining_time--;
             
@@ -105,20 +109,24 @@ void round_robin(Process proc[], int n) {
             if (t == exec_time / 2 && exec_time > 2) {
                 sprintf(details, "RUNNING  | Progress: %d/%d of quantum | Still executing",
                         t + 1, exec_time);
-                log_event(current_time, "RUN", proc[idx].pid, details);
+                log_event_with_sim_time(current_time, "RUN", proc[idx].pid, details);
             }
             
             // Check for new arrivals during execution
             for (int i = 0; i < n; i++) {
-                if (!in_queue[i] && proc[i].remaining_time > 0 &&
-                    proc[i].arrival_time == current_time) {
-                    queue[rear++] = i;
-                    in_queue[i] = 1;
+                if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
                     sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
                             proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
-                    log_event(current_time, "ARR", proc[i].pid, details);
+                    log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                    logged_arrival[i] = 1;
+                    if (!in_queue[i] && proc[i].remaining_time > 0) {
+                        queue[rear++] = i;
+                        in_queue[i] = 1;
+                    }
                 }
             }
+            
+            simulate_time_unit();  // Sleep sau khi log
         }
         
         // Show queue status
@@ -135,13 +143,13 @@ void round_robin(Process proc[], int n) {
         } else {
             strcat(queue_str, "EMPTY]");
         }
-        log_queue(current_time, queue_str);
+        log_queue_with_sim_time(current_time, queue_str);
         
         // Check if process finished or preempted
         if (proc[idx].remaining_time > 0) {
             sprintf(details, "PREEMPT  | Remaining Time=%d | Time quantum expired, back to queue",
                     proc[idx].remaining_time);
-            log_event(current_time, "PRE", proc[idx].pid, details);
+            log_event_with_sim_time(current_time, "PRE", proc[idx].pid, details);
             queue[rear++] = idx;
         } else {
             proc[idx].completion_time = current_time;
@@ -151,7 +159,7 @@ void round_robin(Process proc[], int n) {
                     proc[idx].completion_time,
                     proc[idx].completion_time - proc[idx].arrival_time,
                     proc[idx].completion_time - proc[idx].arrival_time - proc[idx].burst_time);
-            log_event(current_time, "FIN", proc[idx].pid, details);
+            log_event_with_sim_time(current_time, "FIN", proc[idx].pid, details);
         }
         
         prev_proc = idx;

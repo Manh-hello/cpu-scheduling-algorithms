@@ -151,8 +151,8 @@ void srtf(Process proc[], int n) {
         simulate_time_unit();  // Sleep sau khi log
     }
     
-    export_printf("\n[✓] Total Context Switches: %d\n", context_switches);
-    export_printf("[✓] All processes completed\n\n");
+    export_printf("\nTotal Context Switches: %d\n", context_switches);
+    export_printf("All processes completed\n\n");
     
     export_printf("============================= GANTT CHART ==================================\n\n");
     export_printf("Timeline: | ");

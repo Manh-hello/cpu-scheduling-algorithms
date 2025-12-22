@@ -139,16 +139,31 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
     export_printf("╰─────────────────────────────────────────────────────╯\n");
 }
 
+void sim_time_to_string(int sim_time, char *buffer) {
+    int hours = sim_time / 3600;
+    int minutes = (sim_time % 3600) / 60;
+    int seconds = sim_time % 60;
+    sprintf(buffer, "%02d:%02d:%02d", hours, minutes, seconds);
+}
+
+// Log event với simulation time as HH:MM:SS
 void log_event_with_sim_time(int sim_time, const char *event_type, int pid, const char *details) {
+    char time_str[16];
+    sim_time_to_string(sim_time, time_str);
+    
     if (pid > 0) {
-        export_printf("[t=%02d] [%s] P%-2d | %s\n", 
-                     sim_time, event_type, pid, details);
+        export_printf("[%s] [%s] P%-2d | %s\n", 
+                     time_str, event_type, pid, details);
     } else {
-        export_printf("[t=%02d] [%s]     | %s\n",
-                     sim_time, event_type, details);
+        export_printf("[%s] [%s]     | %s\n",
+                     time_str, event_type, details);
     }
 }
 
+// Log queue với simulation time as HH:MM:SS
 void log_queue_with_sim_time(int sim_time, const char *queue_content) {
-    export_printf("[t=%02d] [Queue] %s\n", sim_time, queue_content);
+    char time_str[16];
+    sim_time_to_string(sim_time, time_str);
+    
+    export_printf("[%s] [Queue] %s\n", time_str, queue_content);
 }

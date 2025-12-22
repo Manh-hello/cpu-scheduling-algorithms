@@ -4,18 +4,18 @@ int read_from_file(Process proc[], int *n, const char *filename) {
     FILE *file = fopen(filename, "r");
     
     if (file == NULL) {
-        printf("\n❌ Cannot open file '%s'!\n", filename);
+        printf("\nCannot open file '%s'!\n", filename);
         return 0;
     }
     
     if (fscanf(file, "%d", n) != 1) {
-        printf("❌ Format error: Cannot read number of processes!\n");
+        printf("Format error: Cannot read number of processes!\n");
         fclose(file);
         return 0;
     }
     
     if (*n < 1 || *n > MAX_PROCESSES) {
-        printf("❌ Invalid number of processes: %d (must be 1-%d)\n", 
+        printf("Invalid number of processes: %d (must be 1-%d)\n", 
                *n, MAX_PROCESSES);
         fclose(file);
         return 0;
@@ -28,18 +28,18 @@ int read_from_file(Process proc[], int *n, const char *filename) {
         int pid, at, bt, pr;
         
         if (fscanf(file, "%d %d %d %d", &pid, &at, &bt, &pr) != 4) {
-            printf("❌ Format error at line %d!\n", i + 2);
+            printf("Format error at line %d!\n", i + 2);
             fclose(file);
             return 0;
         }
         
         if (bt <= 0) {
-            printf("❌ Invalid burst time at P%d: %d\n", pid, bt);
+            printf("Invalid burst time at P%d: %d\n", pid, bt);
             fclose(file);
             return 0;
         }
         if (at < 0) {
-            printf("❌ Invalid arrival time at P%d: %d\n", pid, at);
+            printf("Invalid arrival time at P%d: %d\n", pid, at);
             fclose(file);
             return 0;
         }
@@ -129,7 +129,7 @@ void calculate_metrics(Process proc[], int n, Metrics *metrics) {
     // Print metrics
     export_printf("\n");
     export_printf("╭─────────────────────────────────────────────────────╮\n");
-    export_printf("│              📊 PERFORMANCE METRICS                 │\n");
+    export_printf("│                 PERFORMANCE METRICS                 │\n");
     export_printf("├─────────────────────────────────────────────────────┤\n");
     export_printf("│  Total Execution Time    : %-6d time units        │\n", metrics->total_time);
     export_printf("│  CPU Utilization         : %-6.2f %%                 │\n", metrics->cpu_utilization);

@@ -21,11 +21,17 @@ int result_count = 0;
 // Get current system time as HH:MM:SSz
 void get_current_time_str(char *buffer) {
     // 2 dòng này để set timezone Việt Nam
-    // setenv("TZ", "Asia/Ho_Chi_Minh", 1);
-    // tzset();
+    setenv("TZ", "Asia/Ho_Chi_Minh", 1);
+    tzset();
+
+    printf("TZ env = %s\n", getenv("TZ"));
+
+    time_t now = time(NULL);
+    printf("UTC   : %s", asctime(gmtime(&now)));
+    printf("Local : %s", asctime(localtime(&now)));
     
-    time_t now = time(NULL) + 7 * 3600;
-    struct tm *t = gmtime(&now);
+    time_t now = time(NULL); 
+    struct tm *t = localtime(&now);
     sprintf(buffer, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
 }
 

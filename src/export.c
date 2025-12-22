@@ -30,7 +30,6 @@ void get_current_time_str(char *buffer) {
     printf("UTC   : %s", asctime(gmtime(&now)));
     printf("Local : %s", asctime(localtime(&now)));
     
-    time_t now = time(NULL); 
     struct tm *t = localtime(&now);
     sprintf(buffer, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
 }

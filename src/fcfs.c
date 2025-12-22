@@ -45,7 +45,6 @@ void fcfs(Process proc[], int n) {
         
         // Process running - simulate actual execution
         for (int t = 1; t <= proc[i].burst_time; t++) {
-            simulate_time_unit();  // Wait for 1 time unit
             current_time++;
             
             if (t == proc[i].burst_time) {
@@ -59,6 +58,7 @@ void fcfs(Process proc[], int n) {
                         t, proc[i].burst_time);
                 log_event(current_time, "RUN", proc[i].pid, details);
             }
+            simulate_time_unit();  // Wait for 1 time unit
         }
         
         proc[i].completion_time = current_time;

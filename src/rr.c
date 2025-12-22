@@ -165,8 +165,8 @@ void round_robin(Process proc[], int n) {
         prev_proc = idx;
     }
     
-    export_printf("\n[✓] Total Context Switches: %d\n", context_switches);
-    export_printf("[✓] All processes completed\n\n");
+    export_printf("\nTotal Context Switches: %d\n", context_switches);
+    export_printf("All processes completed\n\n");
     
     export_printf("============================= GANTT CHART ==================================\n\n");
     export_printf("Timeline: ");

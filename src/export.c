@@ -21,8 +21,8 @@ int result_count = 0;
 // Get current system time as HH:MM:SSz
 void get_current_time_str(char *buffer) {
     // 2 dòng này để set timezone Việt Nam
-    setenv("TZ", "Asia/Ho_Chi_Minh", 1);
-    tzset();
+    // setenv("TZ", "Asia/Ho_Chi_Minh", 1);
+    // tzset();
     
     time_t now = time(NULL);
     struct tm *t = localtime(&now);

@@ -66,6 +66,9 @@ void format_elapsed_time(char *buffer, double elapsed);
 // Logging functions with real elapsed time (no sim_time needed)
 void log_event(int sim_time, const char *event_type, int pid, const char *details);
 void log_queue(int sim_time, const char *queue_content);
+void sim_time_to_string(int sim_time, char *buffer);
+void log_event_with_sim_time(int sim_time, const char *event_type, int pid, const char *details);
+void log_queue_with_sim_time(int sim_time, const char *queue_content);
 
 // Algorithm functions
 void fcfs(Process proc[], int n);

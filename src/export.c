@@ -89,15 +89,7 @@ void enable_export(const char *filename) {
 void disable_export() {
     if (output_file != NULL) {
         double total_elapsed = get_elapsed_time();
-        
-        fprintf(output_file, "\n\n");
-        fprintf(output_file, "════════════════════════════════ SIMULATION END ═══════════════════════════════\n");
-        fprintf(output_file, "\n");
-        fprintf(output_file, "[✓] All algorithms completed successfully\n");
-        fprintf(output_file, "[✓] Total simulation time: %.3f seconds\n", total_elapsed);
-        fprintf(output_file, "[✓] Report saved to: %s\n", export_filename);
-        fprintf(output_file, "\n");
-        fprintf(output_file, "════════════════════════════════════════════════════════════════════════════════\n");
+    
         fclose(output_file);
         output_file = NULL;
         

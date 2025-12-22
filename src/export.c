@@ -220,11 +220,11 @@ void export_comparison_summary() {
     
     fprintf(output_file, "\n");
     fprintf(output_file, "+--------------------------- BEST PERFORMERS --------------------------------+\n");
-    fprintf(output_file, "| Best Avg Turnaround Time : %-36s (%.2f) |\n", 
+    fprintf(output_file, "| Best Avg Turnaround Time : %-36s (%.2f)     |\n", 
             results[best_tat].name, results[best_tat].metrics.avg_turnaround);
-    fprintf(output_file, "| Best Avg Waiting Time    : %-36s (%.2f) |\n",
+    fprintf(output_file, "| Best Avg Waiting Time    : %-36s (%.2f)     |\n",
             results[best_wt].name, results[best_wt].metrics.avg_waiting);
-    fprintf(output_file, "| Best Avg Response Time   : %-36s (%.2f) |\n",
+    fprintf(output_file, "| Best Avg Response Time   : %-36s (%.2f)     |\n",
             results[best_rt].name, results[best_rt].metrics.avg_response);
     fprintf(output_file, "+----------------------------------------------------------------------------+\n");
 }

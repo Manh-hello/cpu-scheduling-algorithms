@@ -96,7 +96,6 @@ int main() {
     printf("\nView results with:\n");
     printf("   cat %s\n", output_filename);
     printf("   less %s\n", output_filename);
-    printf("\n🎉 Thank you for using CPU Scheduling Simulator!\n\n");
     
     return 0;
 }

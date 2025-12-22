@@ -23,10 +23,9 @@ void get_current_time_str(char *buffer) {
     // 2 dòng này để set timezone Việt Nam
     setenv("TZ", "Asia/Ho_Chi_Minh", 1);
     tzset();
-
-    printf("TZ env = %s\n", getenv("TZ"));
-
-    time_t now = time(NULL);
+    
+    time_t now = time(NULL) + 7 * 3600;
+    struct tm *t = gmtime(&now);
     printf("UTC   : %s", asctime(gmtime(&now)));
     printf("Local : %s", asctime(localtime(&now)));
     

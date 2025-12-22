@@ -12,7 +12,7 @@ int main() {
     printf("\n");
     printf("╔═══════════════════════════════════════════════════════════════╗\n");
     printf("║                                                               ║\n");
-    printf("║           CPU SCHEDULING ALGORITHMS SIMULATOR                  ║\n");
+    printf("║           CPU SCHEDULING ALGORITHMS SIMULATOR                 ║\n");
     printf("║                                                               ║\n");
     printf("║            NetBSD - System Programming Project                ║\n");
     printf("║                    Auto-Run Mode                              ║\n");

@@ -21,12 +21,11 @@ int result_count = 0;
 // Get current system time as HH:MM:SSz
 void get_current_time_str(char *buffer) {
     // 2 dòng này để set timezone Việt Nam
+    setenv("TZ", "Asia/Ho_Chi_Minh", 1);
+    tzset();
+    
     time_t now = time(NULL);
-    
-    // Cộng thêm 7 giờ cho Vietnam (UTC+7)
-    now += 7 * 3600;
-    
-    struct tm *t = gmtime(&now);  // Dùng gmtime thay vì localtime
+    struct tm *t = localtime(&now);
     sprintf(buffer, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
 }
 

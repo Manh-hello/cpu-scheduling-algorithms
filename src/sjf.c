@@ -6,11 +6,33 @@ void sjf(Process proc[], int n) {
     int current_time = 0;
     int completed = 0;
     int is_completed[MAX_PROCESSES] = {0};
+    int logged_arrival[MAX_PROCESSES] = {0};  // Track đã log arrival
     char details[200];
     
     export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
+    // Log processes arrive lúc time 0
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time == 0) {
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                    proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+            log_event_with_sim_time(0, "ARR", proc[i].pid, details);
+            logged_arrival[i] = 1;
+        }
+    }
+    
     while (completed < n) {
+        // Log processes mới arrive tại current_time (nếu chưa log)
+        for (int i = 0; i < n; i++) {
+            if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
+                sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                        proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+                log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                logged_arrival[i] = 1;
+            }
+        }
+        
+        // Tìm shortest job
         int shortest = -1;
         int min_burst = INT_MAX;
         
@@ -23,44 +45,54 @@ void sjf(Process proc[], int n) {
             }
         }
         
+        // Nếu không có job nào ready -> IDLE
         if (shortest == -1) {
             sprintf(details, "IDLE | CPU waiting for next process");
-            log_event(current_time, "CPU", 0, details);
-            simulate_time_unit();
+            log_event_with_sim_time(current_time, "CPU", 0, details);
             current_time++;
+            simulate_time_unit();
             continue;
         }
         
-        if (proc[shortest].arrival_time == current_time) {
-            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
-                    proc[shortest].arrival_time, proc[shortest].burst_time, proc[shortest].priority);
-            log_event(current_time, "ARR", proc[shortest].pid, details);
-        }
-        
+        // Process starts
         proc[shortest].response_time = current_time - proc[shortest].arrival_time;
         sprintf(details, "START    | Response Time=%d, BT=%d | Beginning execution",
                 proc[shortest].response_time, proc[shortest].burst_time);
-        log_event(current_time, "RUN", proc[shortest].pid, details);
+        log_event_with_sim_time(current_time, "RUN", proc[shortest].pid, details);
         
+        // Process running
         for (int t = 1; t <= proc[shortest].burst_time; t++) {
-            simulate_time_unit();
             current_time++;
             
+            // Log event trước khi sleep
             if (t == proc[shortest].burst_time) {
                 sprintf(details, "COMPLETE | CT=%d, TAT=%d | Finished execution",
                         current_time, current_time - proc[shortest].arrival_time);
-                log_event(current_time, "FIN", proc[shortest].pid, details);
+                log_event_with_sim_time(current_time, "FIN", proc[shortest].pid, details);
             } else if (t % 2 == 0 && proc[shortest].burst_time > 3) {
                 sprintf(details, "RUNNING  | Progress: %d/%d | Still executing",
                         t, proc[shortest].burst_time);
-                log_event(current_time, "RUN", proc[shortest].pid, details);
+                log_event_with_sim_time(current_time, "RUN", proc[shortest].pid, details);
             }
+            
+            // Log processes arrive trong khi đang chạy
+            for (int i = 0; i < n; i++) {
+                if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
+                    sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Added to ready queue",
+                            proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+                    log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                    logged_arrival[i] = 1;
+                }
+            }
+            
+            simulate_time_unit();  // Sleep sau khi log
         }
         
         proc[shortest].completion_time = current_time;
         is_completed[shortest] = 1;
         completed++;
         
+        // Show ready queue
         if (completed < n) {
             char queue_str[200] = "Ready Queue: [";
             int queue_count = 0;
@@ -77,7 +109,7 @@ void sjf(Process proc[], int n) {
             } else {
                 strcat(queue_str, "EMPTY]");
             }
-            log_queue(current_time, queue_str);
+            log_queue_with_sim_time(current_time, queue_str);
         }
     }
     

@@ -7,20 +7,42 @@ void srtf(Process proc[], int n) {
     int completed = 0;
     int prev_proc = -1;
     int context_switches = 0;
+    int logged_arrival[MAX_PROCESSES] = {0};
     char details[200];
     
     // Reset remaining time
     for (int i = 0; i < n; i++) {
         proc[i].remaining_time = proc[i].burst_time;
+        proc[i].first_run = 0;
     }
     
     export_printf("========================== ACTIVITY LOG ====================================\n\n");
     
+    // Log processes arrive lúc time 0
+    for (int i = 0; i < n; i++) {
+        if (proc[i].arrival_time == 0) {
+            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
+                    proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+            log_event_with_sim_time(0, "ARR", proc[i].pid, details);
+            logged_arrival[i] = 1;
+        }
+    }
+    
     while (completed < n) {
+        // Log new arrivals tại current_time
+        for (int i = 0; i < n; i++) {
+            if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
+                sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
+                        proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+                log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
+                logged_arrival[i] = 1;
+            }
+        }
+        
+        // Tìm process có remaining time ngắn nhất
         int shortest = -1;
         int min_remaining = INT_MAX;
         
-        // Tìm process có remaining time ngắn nhất
         for (int i = 0; i < n; i++) {
             if (proc[i].arrival_time <= current_time &&
                 proc[i].remaining_time > 0 &&
@@ -30,26 +52,21 @@ void srtf(Process proc[], int n) {
             }
         }
         
+        // Nếu không có process nào ready
         if (shortest == -1) {
             sprintf(details, "IDLE | Waiting for processes to arrive");
-            log_event(current_time, "CPU", 0, details);
+            log_event_with_sim_time(current_time, "CPU", 0, details);
             current_time++;
+            simulate_time_unit();
             continue;
         }
         
-        // New arrival
-        if (proc[shortest].arrival_time == current_time && !proc[shortest].first_run) {
-            sprintf(details, "ARRIVED  | AT=%d, BT=%d, Priority=%d | Entered ready queue",
-                    proc[shortest].arrival_time, proc[shortest].burst_time, proc[shortest].priority);
-            log_event(current_time, "ARR", proc[shortest].pid, details);
-        }
-        
-        // Context switch
+        // Context switch nếu đổi process
         if (prev_proc != shortest && prev_proc != -1) {
             context_switches++;
             sprintf(details, "CONTEXT SWITCH #%d | From P%d to P%d",
-                    context_switches, prev_proc + 1, proc[shortest].pid);
-            log_event(current_time, "CTX", proc[shortest].pid, details);
+                    context_switches, proc[prev_proc].pid, proc[shortest].pid);
+            log_event_with_sim_time(current_time, "CTX", proc[shortest].pid, details);
         }
         
         // Lần đầu chạy
@@ -57,19 +74,20 @@ void srtf(Process proc[], int n) {
             proc[shortest].response_time = current_time - proc[shortest].arrival_time;
             sprintf(details, "START    | Response Time=%d, Remaining=%d | First time running",
                     proc[shortest].response_time, proc[shortest].remaining_time);
-            log_event(current_time, "RUN", proc[shortest].pid, details);
+            log_event_with_sim_time(current_time, "RUN", proc[shortest].pid, details);
             proc[shortest].first_run = 1;
         } else if (prev_proc != shortest) {
+            // Resume sau khi bị preempt
             sprintf(details, "RESUME   | Remaining Time=%d | Continuing execution",
                     proc[shortest].remaining_time);
-            log_event(current_time, "RUN", proc[shortest].pid, details);
+            log_event_with_sim_time(current_time, "RUN", proc[shortest].pid, details);
         }
         
         // Execute one time unit
         proc[shortest].remaining_time--;
         current_time++;
         
-        // Check if completed
+        // Log completion hoặc progress
         if (proc[shortest].remaining_time == 0) {
             proc[shortest].completion_time = current_time;
             completed++;
@@ -77,16 +95,9 @@ void srtf(Process proc[], int n) {
                     proc[shortest].completion_time,
                     proc[shortest].completion_time - proc[shortest].arrival_time,
                     proc[shortest].completion_time - proc[shortest].arrival_time - proc[shortest].burst_time);
-            log_event(current_time, "FIN", proc[shortest].pid, details);
-        } else if (current_time % 3 == 0) {
-            // Log progress every 3 time units
-            sprintf(details, "RUNNING  | Remaining Time=%d | Still executing",
-                    proc[shortest].remaining_time);
-            log_event(current_time, "RUN", proc[shortest].pid, details);
-        }
-        
-        // Show ready queue every 5 time units or on completion
-        if (current_time % 5 == 0 || proc[shortest].remaining_time == 0) {
+            log_event_with_sim_time(current_time, "FIN", proc[shortest].pid, details);
+            
+            // Show ready queue sau khi complete
             char queue_str[200] = "Ready Queue: [";
             int queue_count = 0;
             for (int j = 0; j < n; j++) {
@@ -102,10 +113,19 @@ void srtf(Process proc[], int n) {
             } else {
                 strcat(queue_str, "EMPTY]");
             }
-            log_queue(current_time, queue_str);
+            log_queue_with_sim_time(current_time, queue_str);
+        } else {
+            // Log progress occasionally
+            if (proc[shortest].remaining_time % 3 == 1 || 
+                proc[shortest].remaining_time == proc[shortest].burst_time - 1) {
+                sprintf(details, "RUNNING  | Remaining Time=%d | Still executing",
+                        proc[shortest].remaining_time);
+                log_event_with_sim_time(current_time, "RUN", proc[shortest].pid, details);
+            }
         }
         
         prev_proc = shortest;
+        simulate_time_unit();  // Sleep sau khi log
     }
     
     export_printf("\n[✓] Total Context Switches: %d\n", context_switches);

@@ -29,6 +29,8 @@ void srtf(Process proc[], int n) {
     }
     
     while (completed < n) {
+        int had_arrival = 0;  // Track nếu có arrival mới
+        
         // Log new arrivals tại current_time
         for (int i = 0; i < n; i++) {
             if (!logged_arrival[i] && proc[i].arrival_time == current_time) {
@@ -36,7 +38,28 @@ void srtf(Process proc[], int n) {
                         proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
                 log_event_with_sim_time(current_time, "ARR", proc[i].pid, details);
                 logged_arrival[i] = 1;
+                had_arrival = 1;
             }
+        }
+        
+        // In ready queue ngay sau khi có arrival
+        if (had_arrival) {
+            char queue_str[200] = "Ready Queue: [";
+            int queue_count = 0;
+            for (int j = 0; j < n; j++) {
+                if (proc[j].remaining_time > 0 && proc[j].arrival_time <= current_time) {
+                    char temp[30];
+                    sprintf(temp, "P%d(RT=%d) ", proc[j].pid, proc[j].remaining_time);
+                    strcat(queue_str, temp);
+                    queue_count++;
+                }
+            }
+            if (queue_count > 0) {
+                strcat(queue_str, "]");
+            } else {
+                strcat(queue_str, "EMPTY]");
+            }
+            log_queue_with_sim_time(current_time, queue_str);
         }
         
         // Tìm process có remaining time ngắn nhất

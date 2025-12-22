@@ -73,8 +73,8 @@ void enable_export(const char *filename) {
     fprintf(output_file, "\n");
     fprintf(output_file, "+------------------------ SYSTEM CONFIGURATION -------------------------+\n");
     fprintf(output_file, "| Start Time       : %04d-%02d-%02d %02d:%02d:%02d                                |\n",
-            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-            t->tm_hour, t->tm_min, t->tm_sec);
+            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday + 1,
+            t->tm_hour - 8, t->tm_min, t->tm_sec);
     fprintf(output_file, "| Input File       : data/processes.txt                                 |\n");
     fprintf(output_file, "| Time Quantum     : %d                                                  |\n", TIME_QUANTUM);
     fprintf(output_file, "| Time Scale       : 1 time unit = %d ms                              |\n", time_scale_ms);

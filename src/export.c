@@ -51,7 +51,7 @@ void enable_export(const char *filename) {
     
     output_file = fopen(filename, "w");
     if (output_file == NULL) {
-        printf("❌ Cannot create export file: %s\n", filename);
+        printf("Cannot create export file: %s\n", filename);
         export_enabled = 0;
         return;
     }
@@ -86,7 +86,7 @@ void enable_export(const char *filename) {
     fprintf(output_file, "+-----------------------------------------------------------------------+\n");
     fprintf(output_file, "\n");
     
-    printf("\n⏱️  Real-time simulation: 1 time unit = %d ms\n", time_scale_ms);
+    printf("\nReal-time simulation: 1 time unit = %d ms\n", time_scale_ms);
     printf("    (You can see time actually passing!)\n\n");
 }
 
@@ -106,7 +106,7 @@ void disable_export() {
         output_file = NULL;
         
         printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-        printf("📊 COMPARISON SUMMARY\n");
+        printf("COMPARISON SUMMARY\n");
         printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
         if (result_count > 0) {
             int best_tat = 0, best_wt = 0, best_rt = 0;
@@ -115,12 +115,12 @@ void disable_export() {
                 if (results[i].metrics.avg_waiting < results[best_wt].metrics.avg_waiting) best_wt = i;
                 if (results[i].metrics.avg_response < results[best_rt].metrics.avg_response) best_rt = i;
             }
-            printf("🥇 Best Avg Turnaround: %s (%.2f)\n", results[best_tat].name, results[best_tat].metrics.avg_turnaround);
-            printf("🥇 Best Avg Waiting   : %s (%.2f)\n", results[best_wt].name, results[best_wt].metrics.avg_waiting);
-            printf("🥇 Best Avg Response  : %s (%.2f)\n", results[best_rt].name, results[best_rt].metrics.avg_response);
+            printf("Best Avg Turnaround: %s (%.2f)\n", results[best_tat].name, results[best_tat].metrics.avg_turnaround);
+            printf("Best Avg Waiting   : %s (%.2f)\n", results[best_wt].name, results[best_wt].metrics.avg_waiting);
+            printf("Best Avg Response  : %s (%.2f)\n", results[best_rt].name, results[best_rt].metrics.avg_response);
         }
         printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-        printf("⏱️  Total real simulation time: %.3f seconds\n", total_elapsed);
+        printf("Total real simulation time: %.3f seconds\n", total_elapsed);
         printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     }
     export_enabled = 0;
@@ -224,11 +224,11 @@ void export_comparison_summary() {
     
     fprintf(output_file, "\n");
     fprintf(output_file, "+--------------------------- BEST PERFORMERS --------------------------------+\n");
-    fprintf(output_file, "| [★] Best Avg Turnaround Time : %-36s (%.2f) |\n", 
+    fprintf(output_file, "| Best Avg Turnaround Time : %-36s (%.2f) |\n", 
             results[best_tat].name, results[best_tat].metrics.avg_turnaround);
-    fprintf(output_file, "| [★] Best Avg Waiting Time    : %-36s (%.2f) |\n",
+    fprintf(output_file, "| Best Avg Waiting Time    : %-36s (%.2f) |\n",
             results[best_wt].name, results[best_wt].metrics.avg_waiting);
-    fprintf(output_file, "| [★] Best Avg Response Time   : %-36s (%.2f) |\n",
+    fprintf(output_file, "| Best Avg Response Time   : %-36s (%.2f) |\n",
             results[best_rt].name, results[best_rt].metrics.avg_response);
     fprintf(output_file, "+----------------------------------------------------------------------------+\n");
 }

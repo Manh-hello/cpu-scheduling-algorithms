@@ -24,7 +24,7 @@ void get_current_time_str(char *buffer) {
     setenv("TZ", "Asia/Ho_Chi_Minh", 1);
     tzset();
     
-    time_t now = time(NULL) + 7 * 3600;
+    time_t now = time(NULL);
     struct tm *t = gmtime(&now);
     printf("UTC   : %s", asctime(gmtime(&now)));
     printf("Local : %s", asctime(localtime(&now)));
